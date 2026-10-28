@@ -8,11 +8,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ShootBook">
 <title>ShootBook</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{--bg:#f4f3ef;--card:#fff;--tx:#1d1d1b;--mu:#7a7975;--bd:#e3e1da;--ac:#2f6fdb;--ok:#2e8b57;--bad:#d64545;--warn:#c27c0e}
 @media(prefers-color-scheme:dark){:root{--bg:#141414;--card:#1f1f1f;--tx:#f1f1ef;--mu:#9a9993;--bd:#2f2f2f;--ac:#5b93f0;--ok:#4cc38a;--bad:#f07070;--warn:#e6a23c}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom))}
+body.wait>*{visibility:hidden}
+#login{display:none;padding:0 20px}
+body.out #login{display:block}
+body.out header,body.out main,body.out nav{display:none}
 header{padding:16px 16px 8px;display:flex;justify-content:space-between;align-items:center}
 h1{font-size:28px;margin:0}
 main{padding:0 16px}
@@ -50,7 +57,20 @@ label{font-size:12px;color:var(--mu)}
 .warn{background:#c27c0e22;color:var(--warn);padding:8px 10px;border-radius:10px;font-size:13px;margin-bottom:8px}
 </style>
 </head>
-<body>
+<body class="wait">
+<div id="login">
+<h1 style="margin:48px 0 6px">ShootBook</h1>
+<p class="ml" style="font-size:15px;margin-bottom:24px">Sign in to keep your shoots saved on every device.</p>
+<div class="card">
+<input id="l_email" type="email" placeholder="you@gmail.com" autocomplete="email">
+<input id="l_pass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
+<p id="l_err" style="color:var(--bad);font-size:13px;margin:0 0 8px"></p>
+<button class="btn" onclick="login()">Sign in</button>
+<div style="height:8px"></div>
+<button class="ghost" onclick="signup()">Create account</button>
+<button class="lnk" style="width:100%;margin-top:8px" onclick="resetPw()">Forgot password?</button>
+</div>
+</div>
 <header><h1 id="ttl">Home</h1><button class="fab" onclick="openShoot()">+</button></header>
 <main id="view"></main>
 <nav>
@@ -61,12 +81,26 @@ label{font-size:12px;color:var(--mu)}
 </nav>
 <div class="sheet" id="sheet"></div>
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAbeKrVdf2W4T6UpbdF4WXYuIr-1bcFhkc",
+  authDomain: "shootbook-9f104.firebaseapp.com",
+  projectId: "shootbook-9f104",
+  storageBucket: "shootbook-9f104.firebasestorage.app",
+  messagingSenderId: "141778281558",
+  appId: "1:141778281558:web:a8ee9735b01d60156387f7"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(),db=firebase.firestore();
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 const K='shootbook_v1';
-let D=JSON.parse(localStorage.getItem(K)||'null')||{shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector']};
-let tab='home',calM=new Date(),selDay=null,cur=null,isNew=false;
+const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector']});
+let D=EMPTY(),user=null,unsub=null;
+let tab='home',calM=new Date(),selDay=null,cur=null,isNew=false,moodLoaded=false;
 const g=id=>document.getElementById(id);
 const sh=g('sheet');
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(D));return true}catch(e){alert('Storage is full. Remove some moodboard photos.');return false}};
+const userRef=()=>db.collection('users').doc(user.uid);
+const moodRef=id=>userRef().collection('mood').doc(String(id));
+function save(){if(!user)return;userRef().set({shoots:D.shoots,ads:D.ads,gear:D.gear}).catch(e=>alert('Not saved: '+e.message))}
 const $=n=>'$'+Math.round(+n||0).toLocaleString();
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -74,6 +108,29 @@ const fmtDate=d=>d?new Date(d+'T00:00').toLocaleDateString('en-GB',{weekday:'sho
 const srcName=id=>id==0?'Referral':id==-1?'Organic social':((D.ads.find(a=>a.id==id)||{}).name||'Ad');
 const sum=(arr,f)=>arr.reduce((t,x)=>t+(+f(x)||0),0);
 const TYPES=['Wedding','Engagement','Portrait','Family','Event','Commercial','Product','Other'];
+
+auth.onAuthStateChanged(u=>{
+document.body.classList.remove('wait');
+if(unsub){unsub();unsub=null}
+user=u;
+if(!u){document.body.classList.add('out');D=EMPTY();closeSheet();return}
+document.body.classList.remove('out');
+unsub=userRef().onSnapshot(snap=>{
+if(!snap.exists){migrate();return}
+D=Object.assign(EMPTY(),snap.data());render()},
+e=>alert('Could not load your data: '+e.message))});
+
+async function migrate(){let old=null;try{old=JSON.parse(localStorage.getItem(K)||'null')}catch(e){}
+const d=old||EMPTY();
+for(const s of d.shoots||[]){if(s.mood&&s.mood.length){s.moodN=s.mood.length;try{await moodRef(s.id).set({imgs:s.mood})}catch(e){}}delete s.mood}
+await userRef().set({shoots:d.shoots||[],ads:d.ads||[],gear:d.gear||EMPTY().gear});
+localStorage.removeItem(K)}
+
+const lv=()=>[g('l_email').value.trim(),g('l_pass').value];
+function lerr(e){const m={'auth/invalid-credential':'Wrong email or password.','auth/invalid-login-credentials':'Wrong email or password.','auth/wrong-password':'Wrong email or password.','auth/user-not-found':'No account with this email. Tap Create account.','auth/email-already-in-use':'This email already has an account. Tap Sign in.','auth/weak-password':'Password needs at least 6 characters.','auth/invalid-email':'Enter a valid email.','auth/network-request-failed':'No internet connection.'};g('l_err').textContent=m[e.code]||e.message}
+function login(){const[e,p]=lv();if(!e||!p){g('l_err').textContent='Enter your email and password.';return}g('l_err').textContent='';auth.signInWithEmailAndPassword(e,p).catch(lerr)}
+function signup(){const[e,p]=lv();if(!e||!p){g('l_err').textContent='Enter your email and a password.';return}g('l_err').textContent='';auth.createUserWithEmailAndPassword(e,p).catch(lerr)}
+function resetPw(){const e=g('l_email').value.trim();if(!e){g('l_err').textContent='Enter your email first.';return}auth.sendPasswordResetEmail(e).then(()=>alert('Check your email for a reset link.')).catch(lerr)}
 
 function shootRow(s){const owed=(+s.price||0)-(+s.paid||0);
 return `<div class="card" onclick="openShoot(${s.id})"><div class="row"><div style="min-width:0"><p class="t">${esc(s.client)}</p><p class="ml">${esc(s.type)} · ${fmtDate(s.date)}${s.time?' · '+s.time:''}</p><p class="ml">${esc(srcName(s.src))}${s.loc?' · '+esc(s.loc):''}</p></div>${owed>0?`<span class="pill" style="background:#c27c0e22;color:var(--warn)">${$(owed)} owed</span>`:`<span class="pill" style="background:#2e8b5722;color:var(--ok)">Paid</span>`}</div></div>`}
@@ -115,14 +172,16 @@ for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),k=i
 const mx=Math.max(1,...months.map(m=>m[1]));
 return `<p class="sec">Earnings, last 6 months</p><div class="card"><div style="display:flex;align-items:flex-end;gap:8px;height:150px">${months.map(m=>`<div style="flex:1;text-align:center"><div class="ml" style="font-size:10px">${m[1]?$(m[1]):''}</div><div style="background:var(--ac);border-radius:6px 6px 0 0;height:${Math.round(m[1]/mx*100)}px"></div><div class="ml">${m[0]}</div></div>`).join('')}</div></div>
 <p class="sec">Default gear list (one item per line)</p><div class="card"><textarea id="gearDef" rows="6">${esc(D.gear.join('\n'))}</textarea><button class="ghost" onclick="D.gear=g('gearDef').value.split('\\n').map(x=>x.trim()).filter(Boolean);save();alert('Saved')">Save gear list</button></div>
-<p class="sec">Backup</p><div class="card"><button class="ghost" onclick="exportData()">Export backup</button><div style="height:8px"></div><label class="ghost">Restore backup<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])"></label></div>`}
+<p class="sec">Account</p><div class="card"><p class="ml">Signed in as</p><p class="t" style="margin-bottom:10px">${esc(user.email)}</p><button class="ghost" style="color:var(--bad)" onclick="if(confirm('Sign out?'))auth.signOut()">Sign out</button></div>
+<p class="sec">Extra backup (without moodboard photos)</p><div class="card"><button class="ghost" onclick="exportData()">Export backup</button><div style="height:8px"></div><label class="ghost">Restore backup<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])"></label></div>`}
 
 function openSheet(){sh.classList.add('open');sh.scrollTop=0;document.body.style.overflow='hidden'}
 function closeSheet(){sh.classList.remove('open');document.body.style.overflow=''}
 
 function openShoot(id){
 const s=D.shoots.find(x=>x.id==id);isNew=!s;
-cur=s?JSON.parse(JSON.stringify(s)):{id:Date.now(),client:'',phone:'',insta:'',type:'Portrait',date:selDay||iso(new Date()),time:'',loc:'',price:'',paid:'',src:0,notes:'',gear:D.gear.map(n=>({n,ok:false})),mood:[]};
+cur=s?JSON.parse(JSON.stringify(s)):{id:Date.now(),client:'',phone:'',insta:'',type:'Portrait',date:selDay||iso(new Date()),time:'',loc:'',price:'',paid:'',src:0,notes:'',gear:D.gear.map(n=>({n,ok:false})),moodN:0};
+cur.mood=[];moodLoaded=isNew||!cur.moodN;
 const opts=[[0,'Referral / word of mouth'],[-1,'Organic social (no ad)'],...D.ads.map(a=>[a.id,a.name+' ('+a.plat+' ad)'])];
 const wa=(cur.phone||'').replace(/\D/g,'');
 sh.innerHTML=`<div class="row" style="margin-bottom:12px"><button class="lnk" onclick="closeSheet()">Cancel</button><b>${isNew?'New shoot':'Shoot'}</b><button class="lnk" onclick="saveShoot()"><b>Save</b></button></div>
@@ -143,17 +202,24 @@ ${wa?`<a class="ghost" href="https://wa.me/${wa}">Message on WhatsApp</a>`:''}</
 <p class="sec">Notes</p><div class="card"><textarea id="f_notes" rows="4" placeholder="Client preferences, lighting ideas, shot list">${esc(cur.notes)}</textarea></div>
 <p class="sec">Moodboard (tap a photo to remove it)</p><div class="card"><div class="mood" id="moodBox"></div><label class="ghost">Add photos<input type="file" accept="image/*" multiple style="display:none" onchange="addMood(this.files)"></label></div>
 ${isNew?'':'<button class="ghost" style="color:var(--bad);margin-top:8px" onclick="delShoot()">Delete shoot</button>'}`;
-drawGear();drawMood();overlap();openSheet()}
+drawGear();drawMood();overlap();openSheet();
+if(!moodLoaded){const sid=cur.id;moodRef(sid).get().then(d=>{if(cur&&cur.id==sid){cur.mood=(d.exists?(d.data().imgs||[]):[]).concat(cur.mood);moodLoaded=true;if(g('moodBox'))drawMood()}}).catch(()=>{})}}
 
 function drawGear(){g('gearBox').innerHTML=cur.gear.map((x,i)=>`<label class="chk"><input type="checkbox"${x.ok?' checked':''} onchange="cur.gear[${i}].ok=this.checked"><span style="color:var(--tx);font-size:15px">${esc(x.n)}</span></label>`).join('')+`<div class="row" style="margin-top:6px"><input id="newGear" placeholder="Add item" style="margin:0"><button class="ghost" style="width:auto;padding:10px 14px" onclick="const v=g('newGear').value.trim();if(v){cur.gear.push({n:v,ok:false});drawGear()}">Add</button></div>`}
-function drawMood(){g('moodBox').innerHTML=cur.mood.map((m,i)=>`<img src="${m}" onclick="if(confirm('Remove this photo?')){cur.mood.splice(${i},1);drawMood()}">`).join('')}
+function drawMood(){g('moodBox').innerHTML=cur.mood.map((m,i)=>`<img src="${m}" onclick="if(confirm('Remove this photo?')){cur.mood.splice(${i},1);drawMood()}">`).join('')+(moodLoaded?'':'<p class="ml">Loading photos…</p>')}
 function addMood(files){[...files].forEach(f=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const s=Math.min(1,500/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);cur.mood.push(c.toDataURL('image/jpeg',.7));drawMood()};img.src=e.target.result};r.readAsDataURL(f)})}
 function overlap(){const d=g('f_date').value,o=D.shoots.filter(s=>s.date==d&&s.id!=cur.id);g('ov').innerHTML=o.length?`<div class="warn">You already have ${o.map(s=>esc(s.client)+(s.time?' at '+s.time:'')).join(', ')} on this day.</div>`:''}
+
 function saveShoot(){const c=g('f_client').value.trim(),d=g('f_date').value;if(!c||!d){alert('Add a client name and a date.');return}
+if(JSON.stringify(cur.mood).length>950000){alert('Too many moodboard photos for one shoot. Remove a few and try again.');return}
 Object.assign(cur,{client:c,phone:g('f_phone').value.trim(),insta:g('f_insta').value.trim(),type:g('f_type').value,date:d,time:g('f_time').value,loc:g('f_loc').value.trim(),price:+g('f_price').value||0,paid:+g('f_paid').value||0,src:+g('f_src').value,notes:g('f_notes').value});
-const bak=JSON.stringify(D),i=D.shoots.findIndex(s=>s.id==cur.id);if(i>=0)D.shoots[i]=cur;else D.shoots.push(cur);
-if(!save()){D=JSON.parse(bak);return}closeSheet();render()}
-function delShoot(){if(confirm('Delete this shoot?')){D.shoots=D.shoots.filter(s=>s.id!=cur.id);save();closeSheet();render()}}
+const {mood,...s}=cur;
+s.moodN=moodLoaded?mood.length:(s.moodN||0)+mood.length;
+if(moodLoaded){(mood.length?moodRef(s.id).set({imgs:mood}):moodRef(s.id).delete()).catch(()=>{})}
+else if(mood.length){moodRef(s.id).set({imgs:firebase.firestore.FieldValue.arrayUnion(...mood)},{merge:true}).catch(()=>{})}
+const i=D.shoots.findIndex(x=>x.id==s.id);if(i>=0)D.shoots[i]=s;else D.shoots.push(s);
+save();closeSheet();render()}
+function delShoot(){if(confirm('Delete this shoot?')){D.shoots=D.shoots.filter(s=>s.id!=cur.id);moodRef(cur.id).delete().catch(()=>{});save();closeSheet();render()}}
 
 function openAd(id){const a=D.ads.find(x=>x.id==id);isNew=!a;cur=a?{...a}:{id:Date.now(),name:'',plat:'Instagram',spent:'',date:iso(new Date())};
 const s=D.shoots.filter(x=>x.src==cur.id);
@@ -172,12 +238,11 @@ function delAd(){if(confirm('Delete this campaign? Its clients will be moved to 
 async function exportData(){const name='shootbook-backup-'+iso(new Date())+'.json',file=new File([JSON.stringify(D)],name,{type:'application/json'});
 if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]})}catch(e){}return}
 const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;a.click()}
-function importData(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.shoots||!x.ads)throw 0;if(confirm('Replace all current data with this backup?')){D=x;save();render()}}catch(e){alert('That file is not a valid backup.')}};r.readAsText(f)}
+function importData(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.shoots||!x.ads)throw 0;if(confirm('Replace all current data with this backup?')){x.shoots.forEach(s=>delete s.mood);D=Object.assign(EMPTY(),x);save();render()}}catch(e){alert('That file is not a valid backup.')}};r.readAsText(f)}
 
-function render(){const T={home:['Home',vHome],cal:['Calendar',vCal],ads:['Ads',vAds],more:['Stats',vMore]}[tab];
+function render(){if(!user)return;const T={home:['Home',vHome],cal:['Calendar',vCal],ads:['Ads',vAds],more:['Stats',vMore]}[tab];
 g('ttl').textContent=T[0];g('view').innerHTML=T[1]();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab))}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;render();scrollTo(0,0)});
-render();
 </script>
 </body>
 </html>

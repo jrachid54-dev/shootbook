@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ShootBook">
+<title>ShootBook</title>
+<style>
+:root{--bg:#f4f3ef;--card:#fff;--tx:#1d1d1b;--mu:#7a7975;--bd:#e3e1da;--ac:#2f6fdb;--ok:#2e8b57;--bad:#d64545;--warn:#c27c0e}
+@media(prefers-color-scheme:dark){:root{--bg:#141414;--card:#1f1f1f;--tx:#f1f1ef;--mu:#9a9993;--bd:#2f2f2f;--ac:#5b93f0;--ok:#4cc38a;--bad:#f07070;--warn:#e6a23c}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--tx);padding:env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom))}
+header{padding:16px 16px 8px;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:28px;margin:0}
+main{padding:0 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.m{background:var(--card);border-radius:14px;padding:12px;border:1px solid var(--bd)}
+.ml{font-size:12px;color:var(--mu);margin:0}
+.mv{font-size:22px;font-weight:600;margin:2px 0 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.t{font-weight:600;margin:0;font-size:15px}
+.pill{font-size:12px;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.sec{font-size:13px;color:var(--mu);margin:16px 0 8px}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav button{background:none;border:0;color:var(--mu);padding:8px 0;font-size:11px}
+nav button b{display:block;font-size:20px;font-weight:400}
+nav button.on{color:var(--ac)}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:12px;padding:12px;font-size:16px;width:100%;font-weight:600}
+.ghost{display:block;text-align:center;background:none;border:1px solid var(--bd);color:var(--tx);border-radius:12px;padding:10px;font-size:15px;width:100%;text-decoration:none}
+.fab{background:var(--ac);color:#fff;border:0;border-radius:50%;width:42px;height:42px;font-size:26px;line-height:1}
+.lnk{background:none;border:0;color:var(--ac);font-size:16px;padding:6px 0}
+input,select,textarea{width:100%;font-size:16px;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font-family:inherit;margin-bottom:8px}
+label{font-size:12px;color:var(--mu)}
+.sheet{position:fixed;inset:0;background:var(--bg);overflow-y:auto;z-index:10;padding:calc(env(safe-area-inset-top) + 12px) 16px 40px;display:none}
+.sheet.open{display:block}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal div{padding:9px 0;border-radius:8px;font-size:14px;position:relative}
+.cal .d{background:var(--card)}
+.cal .has::after{content:'';position:absolute;bottom:3px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--ac)}
+.cal .today{outline:2px solid var(--ac)}
+.cal .sel{background:var(--ac);color:#fff}
+.mood{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.mood img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
+.chk{display:flex;align-items:center;gap:10px;padding:6px 0}
+.chk input{width:22px;height:22px;margin:0}
+.warn{background:#c27c0e22;color:var(--warn);padding:8px 10px;border-radius:10px;font-size:13px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<header><h1 id="ttl">Home</h1><button class="fab" onclick="openShoot()">+</button></header>
+<main id="view"></main>
+<nav>
+<button data-t="home" class="on"><b>🏠</b>Home</button>
+<button data-t="cal"><b>📅</b>Calendar</button>
+<button data-t="ads"><b>📣</b>Ads</button>
+<button data-t="more"><b>📊</b>Stats</button>
+</nav>
+<div class="sheet" id="sheet"></div>
+<script>
+const K='shootbook_v1';
+let D=JSON.parse(localStorage.getItem(K)||'null')||{shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector']};
+let tab='home',calM=new Date(),selDay=null,cur=null,isNew=false;
+const g=id=>document.getElementById(id);
+const sh=g('sheet');
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D));return true}catch(e){alert('Storage is full. Remove some moodboard photos.');return false}};
+const $=n=>'$'+Math.round(+n||0).toLocaleString();
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtDate=d=>d?new Date(d+'T00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'';
+const srcName=id=>id==0?'Referral':id==-1?'Organic social':((D.ads.find(a=>a.id==id)||{}).name||'Ad');
+const sum=(arr,f)=>arr.reduce((t,x)=>t+(+f(x)||0),0);
+const TYPES=['Wedding','Engagement','Portrait','Family','Event','Commercial','Product','Other'];
+
+function shootRow(s){const owed=(+s.price||0)-(+s.paid||0);
+return `<div class="card" onclick="openShoot(${s.id})"><div class="row"><div style="min-width:0"><p class="t">${esc(s.client)}</p><p class="ml">${esc(s.type)} · ${fmtDate(s.date)}${s.time?' · '+s.time:''}</p><p class="ml">${esc(srcName(s.src))}${s.loc?' · '+esc(s.loc):''}</p></div>${owed>0?`<span class="pill" style="background:#c27c0e22;color:var(--warn)">${$(owed)} owed</span>`:`<span class="pill" style="background:#2e8b5722;color:var(--ok)">Paid</span>`}</div></div>`}
+
+function vHome(){
+const t=iso(new Date()),m=t.slice(0,7);
+const month=D.shoots.filter(s=>s.date.startsWith(m));
+const owed=sum(D.shoots,s=>(+s.price||0)-(+s.paid||0));
+const spent=sum(D.ads,a=>a.spent);
+const fromAds=sum(D.shoots.filter(s=>s.src>0),s=>s.price);
+const up=D.shoots.filter(s=>s.date>=t).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+return `<div class="grid">
+<div class="m"><p class="ml">This month</p><p class="mv">${$(sum(month,s=>s.price))}</p><p class="ml">${month.length} shoot${month.length==1?'':'s'}</p></div>
+<div class="m"><p class="ml">Still owed</p><p class="mv" style="color:var(--warn)">${$(owed)}</p></div>
+<div class="m"><p class="ml">Spent on ads</p><p class="mv" style="color:var(--bad)">${$(spent)}</p></div>
+<div class="m"><p class="ml">Earned from ads</p><p class="mv" style="color:var(--ok)">${$(fromAds)}</p></div></div>
+${spent?`<div class="card row"><span>Every $1 on ads brought back</span><b style="font-size:20px;color:${fromAds>=spent?'var(--ok)':'var(--bad)'}">$${(fromAds/spent).toFixed(1)}</b></div>`:''}
+<p class="sec">Upcoming shoots</p>${up.length?up.slice(0,10).map(shootRow).join(''):'<div class="card ml">No upcoming shoots. Tap + to add one.</div>'}`}
+
+function vCal(){
+const y=calM.getFullYear(),mo=calM.getMonth(),first=new Date(y,mo,1),days=new Date(y,mo+1,0).getDate();
+const off=(first.getDay()+6)%7,t=iso(new Date());
+let h=`<div class="row" style="margin-bottom:10px"><button class="ghost" style="width:auto;padding:6px 16px" onclick="calM=new Date(${y},${mo-1},1);selDay=null;render()">‹</button><b>${first.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</b><button class="ghost" style="width:auto;padding:6px 16px" onclick="calM=new Date(${y},${mo+1},1);selDay=null;render()">›</button></div><div class="cal">`+['M','T','W','T','F','S','S'].map(d=>`<div class="ml">${d}</div>`).join('')+'<div></div>'.repeat(off);
+for(let d=1;d<=days;d++){const ds=iso(new Date(y,mo,d));const n=D.shoots.some(s=>s.date==ds);
+h+=`<div class="d${n?' has':''}${ds==t?' today':''}${ds==selDay?' sel':''}" onclick="selDay=selDay=='${ds}'?null:'${ds}';render()">${d}</div>`}
+h+='</div>';
+const list=D.shoots.filter(s=>selDay?s.date==selDay:s.date.startsWith(iso(first).slice(0,7))).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+return h+`<p class="sec">${selDay?fmtDate(selDay):'This month'}</p>`+(list.length?list.map(shootRow).join(''):'<div class="card ml">No shoots.</div>')}
+
+function vAds(){
+const spent=sum(D.ads,a=>a.spent),rev=sum(D.shoots.filter(s=>s.src>0),s=>s.price);
+let h=`<div class="grid"><div class="m"><p class="ml">Total spent</p><p class="mv" style="color:var(--bad)">${$(spent)}</p></div><div class="m"><p class="ml">Total earned</p><p class="mv" style="color:var(--ok)">${$(rev)}</p></div></div><button class="btn" onclick="openAd()">+ New ad campaign</button><p class="sec">Campaigns</p>`;
+return h+(D.ads.length?[...D.ads].reverse().map(a=>{const s=D.shoots.filter(x=>x.src==a.id),r=sum(s,x=>x.price),p=r-(+a.spent||0);
+return `<div class="card" onclick="openAd(${a.id})"><div class="row"><div><p class="t">${esc(a.name)}</p><p class="ml">${esc(a.plat)} · spent ${$(a.spent)} · ${s.length} client${s.length==1?'':'s'}</p></div><div style="text-align:right"><b style="color:${p>=0?'var(--ok)':'var(--bad)'}">${p>=0?'+':'-'}${$(Math.abs(p))}</b><p class="ml">${+a.spent?'x'+(r/a.spent).toFixed(1)+' return':''}</p></div></div></div>`}).join(''):'<div class="card ml">Add your first ad to see how much each one brings back.</div>')}
+
+function vMore(){
+const months=[],now=new Date();
+for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),k=iso(d).slice(0,7);months.push([d.toLocaleDateString('en-GB',{month:'short'}),sum(D.shoots.filter(s=>s.date.startsWith(k)),s=>s.price)])}
+const mx=Math.max(1,...months.map(m=>m[1]));
+return `<p class="sec">Earnings, last 6 months</p><div class="card"><div style="display:flex;align-items:flex-end;gap:8px;height:150px">${months.map(m=>`<div style="flex:1;text-align:center"><div class="ml" style="font-size:10px">${m[1]?$(m[1]):''}</div><div style="background:var(--ac);border-radius:6px 6px 0 0;height:${Math.round(m[1]/mx*100)}px"></div><div class="ml">${m[0]}</div></div>`).join('')}</div></div>
+<p class="sec">Default gear list (one item per line)</p><div class="card"><textarea id="gearDef" rows="6">${esc(D.gear.join('\n'))}</textarea><button class="ghost" onclick="D.gear=g('gearDef').value.split('\\n').map(x=>x.trim()).filter(Boolean);save();alert('Saved')">Save gear list</button></div>
+<p class="sec">Backup</p><div class="card"><button class="ghost" onclick="exportData()">Export backup</button><div style="height:8px"></div><label class="ghost">Restore backup<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])"></label></div>`}
+
+function openSheet(){sh.classList.add('open');sh.scrollTop=0;document.body.style.overflow='hidden'}
+function closeSheet(){sh.classList.remove('open');document.body.style.overflow=''}
+
+function openShoot(id){
+const s=D.shoots.find(x=>x.id==id);isNew=!s;
+cur=s?JSON.parse(JSON.stringify(s)):{id:Date.now(),client:'',phone:'',insta:'',type:'Portrait',date:selDay||iso(new Date()),time:'',loc:'',price:'',paid:'',src:0,notes:'',gear:D.gear.map(n=>({n,ok:false})),mood:[]};
+const opts=[[0,'Referral / word of mouth'],[-1,'Organic social (no ad)'],...D.ads.map(a=>[a.id,a.name+' ('+a.plat+' ad)'])];
+const wa=(cur.phone||'').replace(/\D/g,'');
+sh.innerHTML=`<div class="row" style="margin-bottom:12px"><button class="lnk" onclick="closeSheet()">Cancel</button><b>${isNew?'New shoot':'Shoot'}</b><button class="lnk" onclick="saveShoot()"><b>Save</b></button></div>
+<div class="card"><label>Client name</label><input id="f_client" value="${esc(cur.client)}" placeholder="Maya and Karim">
+<label>Phone</label><input id="f_phone" type="tel" value="${esc(cur.phone)}" placeholder="+961 70 123 456">
+<label>Instagram</label><input id="f_insta" value="${esc(cur.insta)}" placeholder="@username">
+${wa?`<a class="ghost" href="https://wa.me/${wa}">Message on WhatsApp</a>`:''}</div>
+<div class="card"><label>Type</label><select id="f_type">${TYPES.map(t=>`<option${t==cur.type?' selected':''}>${t}</option>`).join('')}</select>
+<label>Date</label><input id="f_date" type="date" value="${cur.date}" onchange="overlap()">
+<label>Time</label><input id="f_time" type="time" value="${cur.time}">
+<div id="ov"></div>
+<label>Location</label><input id="f_loc" value="${esc(cur.loc)}" placeholder="Batroun"></div>
+<div class="card"><label>Price ($)</label><input id="f_price" type="number" inputmode="decimal" value="${cur.price}">
+<label>Paid so far ($)</label><input id="f_paid" type="number" inputmode="decimal" value="${cur.paid}">
+<button class="ghost" onclick="g('f_paid').value=g('f_price').value">Mark fully paid</button>
+<label style="display:block;margin-top:12px">Where did this client come from?</label><select id="f_src">${opts.map(o=>`<option value="${o[0]}"${o[0]==cur.src?' selected':''}>${esc(o[1])}</option>`).join('')}</select></div>
+<p class="sec">Gear checklist</p><div class="card" id="gearBox"></div>
+<p class="sec">Notes</p><div class="card"><textarea id="f_notes" rows="4" placeholder="Client preferences, lighting ideas, shot list">${esc(cur.notes)}</textarea></div>
+<p class="sec">Moodboard (tap a photo to remove it)</p><div class="card"><div class="mood" id="moodBox"></div><label class="ghost">Add photos<input type="file" accept="image/*" multiple style="display:none" onchange="addMood(this.files)"></label></div>
+${isNew?'':'<button class="ghost" style="color:var(--bad);margin-top:8px" onclick="delShoot()">Delete shoot</button>'}`;
+drawGear();drawMood();overlap();openSheet()}
+
+function drawGear(){g('gearBox').innerHTML=cur.gear.map((x,i)=>`<label class="chk"><input type="checkbox"${x.ok?' checked':''} onchange="cur.gear[${i}].ok=this.checked"><span style="color:var(--tx);font-size:15px">${esc(x.n)}</span></label>`).join('')+`<div class="row" style="margin-top:6px"><input id="newGear" placeholder="Add item" style="margin:0"><button class="ghost" style="width:auto;padding:10px 14px" onclick="const v=g('newGear').value.trim();if(v){cur.gear.push({n:v,ok:false});drawGear()}">Add</button></div>`}
+function drawMood(){g('moodBox').innerHTML=cur.mood.map((m,i)=>`<img src="${m}" onclick="if(confirm('Remove this photo?')){cur.mood.splice(${i},1);drawMood()}">`).join('')}
+function addMood(files){[...files].forEach(f=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const s=Math.min(1,500/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);cur.mood.push(c.toDataURL('image/jpeg',.7));drawMood()};img.src=e.target.result};r.readAsDataURL(f)})}
+function overlap(){const d=g('f_date').value,o=D.shoots.filter(s=>s.date==d&&s.id!=cur.id);g('ov').innerHTML=o.length?`<div class="warn">You already have ${o.map(s=>esc(s.client)+(s.time?' at '+s.time:'')).join(', ')} on this day.</div>`:''}
+function saveShoot(){const c=g('f_client').value.trim(),d=g('f_date').value;if(!c||!d){alert('Add a client name and a date.');return}
+Object.assign(cur,{client:c,phone:g('f_phone').value.trim(),insta:g('f_insta').value.trim(),type:g('f_type').value,date:d,time:g('f_time').value,loc:g('f_loc').value.trim(),price:+g('f_price').value||0,paid:+g('f_paid').value||0,src:+g('f_src').value,notes:g('f_notes').value});
+const bak=JSON.stringify(D),i=D.shoots.findIndex(s=>s.id==cur.id);if(i>=0)D.shoots[i]=cur;else D.shoots.push(cur);
+if(!save()){D=JSON.parse(bak);return}closeSheet();render()}
+function delShoot(){if(confirm('Delete this shoot?')){D.shoots=D.shoots.filter(s=>s.id!=cur.id);save();closeSheet();render()}}
+
+function openAd(id){const a=D.ads.find(x=>x.id==id);isNew=!a;cur=a?{...a}:{id:Date.now(),name:'',plat:'Instagram',spent:'',date:iso(new Date())};
+const s=D.shoots.filter(x=>x.src==cur.id);
+sh.innerHTML=`<div class="row" style="margin-bottom:12px"><button class="lnk" onclick="closeSheet()">Cancel</button><b>${isNew?'New ad':'Ad campaign'}</b><button class="lnk" onclick="saveAd()"><b>Save</b></button></div>
+<div class="card"><label>Campaign name</label><input id="a_name" value="${esc(cur.name)}" placeholder="Wedding season promo">
+<label>Platform</label><select id="a_plat">${['Instagram','Facebook','TikTok','Google','Other'].map(p=>`<option${p==cur.plat?' selected':''}>${p}</option>`).join('')}</select>
+<label>Start date</label><input id="a_date" type="date" value="${cur.date}">
+<label>Total spent ($)</label><input id="a_spent" type="number" inputmode="decimal" value="${cur.spent}"></div>
+${s.length?'<p class="sec">Clients from this ad</p>'+s.map(shootRow).join(''):''}
+${isNew?'':'<button class="ghost" style="color:var(--bad);margin-top:8px" onclick="delAd()">Delete campaign</button>'}`;openSheet()}
+function saveAd(){const n=g('a_name').value.trim();if(!n){alert('Add a campaign name.');return}
+Object.assign(cur,{name:n,plat:g('a_plat').value,date:g('a_date').value,spent:+g('a_spent').value||0});
+const i=D.ads.findIndex(a=>a.id==cur.id);if(i>=0)D.ads[i]=cur;else D.ads.push(cur);save();closeSheet();render()}
+function delAd(){if(confirm('Delete this campaign? Its clients will be moved to Referral.')){D.shoots.forEach(s=>{if(s.src==cur.id)s.src=0});D.ads=D.ads.filter(a=>a.id!=cur.id);save();closeSheet();render()}}
+
+async function exportData(){const name='shootbook-backup-'+iso(new Date())+'.json',file=new File([JSON.stringify(D)],name,{type:'application/json'});
+if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]})}catch(e){}return}
+const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;a.click()}
+function importData(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.shoots||!x.ads)throw 0;if(confirm('Replace all current data with this backup?')){D=x;save();render()}}catch(e){alert('That file is not a valid backup.')}};r.readAsText(f)}
+
+function render(){const T={home:['Home',vHome],cal:['Calendar',vCal],ads:['Ads',vAds],more:['Stats',vMore]}[tab];
+g('ttl').textContent=T[0];g('view').innerHTML=T[1]();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;render();scrollTo(0,0)});
+render();
+</script>
+</body>
+</html>

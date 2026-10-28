@@ -60,6 +60,20 @@ main{padding:0 18px}
 .seg{margin-left:auto;background:var(--card);border-radius:26px;padding:4px;display:flex}
 .seg button{background:none;border:0;color:var(--mu);width:44px;height:42px;border-radius:22px;display:flex;align-items:center;justify-content:center}
 .seg button.on{background:#0b0c0f;color:var(--tx)}
+.seg2{display:grid;grid-template-columns:1fr 1fr;background:var(--card);border-radius:20px;padding:6px;margin-bottom:14px}
+.seg2 button{border:0;background:none;color:var(--mu);border-radius:15px;padding:14px 6px;font-size:18px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px}
+.seg2 svg{width:22px;height:22px}
+.seg2 button.on{background:var(--ac);color:#fff}
+.pc4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.pc4 button{background:var(--card);border:1.5px solid transparent;color:var(--mu);border-radius:14px;padding:12px 0;font-size:16px;font-weight:600}
+.pc4 button.on{border-color:var(--ac);color:var(--ac);background:#0f2422}
+.vb{display:flex;align-items:flex-end;gap:5px;height:180px}
+.vb>div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;height:100%}
+.vb i{width:100%;border-radius:8px}
+.vb .ml{font-size:11px}
+.dc{background:var(--card);border-radius:18px;padding:18px;text-align:center}
+.dc svg{width:26px;height:26px;color:var(--ac)}
+.dc .n{font-size:26px;font-weight:700;margin:8px 0 2px}
 nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;background:#15171c;border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(4,1fr);padding:10px 0 calc(10px + env(safe-area-inset-bottom));z-index:5}
 nav button{background:none;border:0;color:var(--mu);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:500}
 nav svg{width:26px;height:26px}
@@ -179,7 +193,9 @@ pin:svg('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle c
 clock:svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
 check:svg('<path d="M5 12l5 5 9-10"/>'),
 send:svg('<path d="M4 12l16-8-6 16-3-7-7-1z"/>'),
-file:svg('<path d="M14 3H6v18h12V7l-4-4z"/><path d="M14 3v4h4"/>')};
+file:svg('<path d="M14 3H6v18h12V7l-4-4z"/><path d="M14 3v4h4"/>'),
+cam:svg('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
+rec:svg('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>')};
 const TABS=[['dash','Dashboard',IC.grid],['shoots','Photoshoots',IC.cal],['ads','Ads',IC.ads],['profile','Profile',IC.user]];
 const ST=['Pending','Confirmed','Editing','Delivered'];
 const STC={Pending:'#f59e0b',Confirmed:'#22c55e',Editing:'#3b82f6',Delivered:'#6b7280'};
@@ -189,6 +205,7 @@ const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteri
 let D=EMPTY(),user=null,unsub=null;
 let tab='dash',dm=0,filt='All',q='',showQ=false,view='list',calM=new Date(),selDay=null,jump=false;
 let cur=null,isNew=false,dId=null,dtab='status',dMood=null;
+let an={mode:'fin',per:'month',mo:0,yr:new Date().getFullYear(),from:'',to:''};
 const g=id=>document.getElementById(id);
 const sh=g('sheet'),sin=g('sin');
 const userRef=()=>db.collection('users').doc(user.uid);
@@ -205,6 +222,7 @@ const sum=(arr,f)=>arr.reduce((t,x)=>t+(+f(x)||0),0);
 const byDate=(a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''));
 const stOf=s=>s.status||'Confirmed';
 const info=(k,v)=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--bd)"><span class="ml" style="font-size:15px">${k}</span><span style="font-size:15px;text-align:right">${v}</span></div>`;
+const hb=(label,val,max,color,txt)=>`<div style="margin:14px 0 4px"><div class="row" style="margin-bottom:6px"><span style="font-size:15px">${label}</span><b style="font-size:15px">${txt}</b></div><div class="bar" style="margin:0"><i style="width:${max?Math.round(val/max*100):0}%;background:${color}"></i></div></div>`;
 function monthKey(o){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+o);return[iso(d).slice(0,7),d.toLocaleDateString('en-GB',{month:'long'})]}
 
 g('nav').innerHTML=TABS.map(t=>`<button data-t="${t[0]}">${t[2]}${t[1]}</button>`).join('');
@@ -247,7 +265,7 @@ h=`<div class="hero" onclick="openDetail(${up.id})"><div class="row"><span class
 h+=`<div class="mcs">${[dm-1,dm,dm+1].map(o=>`<button class="mc${o==dm?' on':''}" onclick="dm=${o};render()">${o==0?'This month':monthKey(o)[1]}</button>`).join('')}</div>`;
 const mk=monthKey(dm)[0],ms=D.shoots.filter(s=>s.date.startsWith(mk));
 const tot=sum(ms,s=>s.price),paid=sum(ms,s=>Math.min(+s.paid||0,+s.price||0)),pct=tot?paid/tot*100:0;
-h+=`<div class="card"><div class="row" style="align-items:flex-start"><div><p class="lab">Total</p><p class="big">${$$(tot)}</p></div><span class="chip">${ms.length} shoot${ms.length==1?'':'s'}</span></div><div class="bar"><i style="width:${pct}%"></i></div><div class="row"><span style="color:var(--ac);font-weight:600;font-size:17px">${$$(paid)} Paid</span><span class="ml" style="font-size:16px">${$$(tot-paid)} Pending</span></div></div>`;
+h+=`<div class="card" onclick="openAnalytics('fin',dm)"><div class="row" style="align-items:flex-start"><div><p class="lab">Total</p><p class="big">${$$(tot)}</p></div><span class="chip">${ms.length} shoot${ms.length==1?'':'s'}</span></div><div class="bar"><i style="width:${pct}%"></i></div><div class="row"><span style="color:var(--ac);font-weight:600;font-size:17px">${$$(paid)} Paid</span><span class="ml" style="font-size:16px">${$$(tot-paid)} Pending</span></div></div>`;
 h+=`<div class="sg">${ST.map(st=>`<div class="stc" onclick="filt='${st}';tab='shoots';render()"><i style="background:${STC[st]}"></i><div><p class="sn">${ms.filter(s=>stOf(s)==st).length}</p><p class="ml" style="font-size:16px">${st}</p></div></div>`).join('')}</div>`;
 if(D.ads.length){const sp=sum(D.ads,a=>a.spent),fa=sum(D.shoots.filter(s=>s.src>0),s=>s.price);
 h+=`<div class="card" onclick="tab='ads';render()"><div class="row"><div><p class="lab">Ads</p><p class="ml" style="font-size:15px">Spent ${$(sp)} · Earned ${$(fa)}</p></div><span class="chip" style="color:${fa>=sp?'#5eead4':'var(--bad)'}">$${sp?(fa/sp).toFixed(1):'0.0'} per $1</span></div></div>`}
@@ -286,19 +304,50 @@ ${menu('analytics','Analytics','#fef3c7','#d97706',IC.chart)}${menu('equipment',
 <p class="sec">Data and export</p><div class="mi" onclick="exportCSV()"><span class="mic" style="background:#12312e;color:var(--ac)">${IC.dl}</span><div style="flex:1"><p class="mt">Export photoshoots</p><p class="ml" style="font-size:14px">Save your shoots as a CSV file</p></div>${IC.chev}</div>
 <button class="out" onclick="if(confirm('Log out?'))auth.signOut()">Log Out</button>`}
 
-function openPage(k){const T={analytics:'Analytics',equipment:'My equipment',moodlib:'Moodboard library',settings:'Settings'};
-sin.innerHTML=`<div class="row" style="margin-bottom:16px"><button class="lnk" onclick="closeSheet()">‹ Back</button><b style="font-size:17px">${T[k]}</b><span style="width:56px"></span></div><div id="pc"></div>`;
-openSheet();({analytics:pAnalytics,equipment:pEquip,moodlib:pMood,settings:pSettings})[k]()}
+function openPage(k){if(k=='analytics'){openAnalytics('shoots',0);return}
+const T={equipment:'My equipment',moodlib:'Moodboard library',settings:'Settings'};
+sin.innerHTML=`<div class="row" style="margin-bottom:16px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><b style="font-size:22px">${T[k]}</b><span style="width:50px"></span></div><div id="pc"></div>`;
+openSheet();({equipment:pEquip,moodlib:pMood,settings:pSettings})[k]()}
 
-function pAnalytics(){const months=[],now=new Date();
-for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1),k=iso(d).slice(0,7);months.push([d.toLocaleDateString('en-GB',{month:'short'}),sum(D.shoots.filter(s=>s.date.startsWith(k)),s=>s.price)])}
-const mx=Math.max(1,...months.map(m=>m[1])),y=String(now.getFullYear()),ys=D.shoots.filter(s=>s.date.startsWith(y)),yt=sum(ys,s=>s.price);
-const types={};D.shoots.forEach(s=>{types[s.type]=types[s.type]||[0,0];types[s.type][0]++;types[s.type][1]+=+s.price||0});
-const sp=sum(D.ads,a=>a.spent),fa=sum(D.shoots.filter(s=>s.src>0),s=>s.price);
-g('pc').innerHTML=`<div class="sg"><div class="card" style="margin:0"><p class="ml">This year</p><p class="sn" style="font-size:24px">${$(yt)}</p><p class="ml">${ys.length} shoots</p></div><div class="card" style="margin:0"><p class="ml">Average per shoot</p><p class="sn" style="font-size:24px">${$(ys.length?yt/ys.length:0)}</p></div></div>
-<div class="card"><p class="lab" style="margin-bottom:14px">Earnings, last 6 months</p><div style="display:flex;align-items:flex-end;gap:8px;height:170px">${months.map(m=>`<div style="flex:1;text-align:center"><div class="ml" style="font-size:11px">${m[1]?$(m[1]):''}</div><div style="background:var(--ac);border-radius:8px 8px 0 0;height:${Math.round(m[1]/mx*110)}px;margin-top:4px"></div><div class="ml" style="margin-top:6px">${m[0]}</div></div>`).join('')}</div></div>
-<div class="card"><p class="lab" style="margin-bottom:6px">By type</p>${Object.entries(types).sort((a,b)=>b[1][1]-a[1][1]).map(([t,v])=>info(esc(t)+' · '+v[0],'<b>'+$(v[1])+'</b>')).join('')||'<p class="ml">No shoots yet.</p>'}</div>
-<div class="card"><p class="lab" style="margin-bottom:6px">Ads</p>${info('Spent',$(sp))}${info('Earned from ads',$(fa))}${info('Return per $1','$'+(sp?(fa/sp).toFixed(1):'0.0'))}</div>`}
+function openAnalytics(mode,mo){an.mode=mode;if(mo!=null){an.per='month';an.mo=mo}
+sin.innerHTML=`<div class="row" style="margin-bottom:16px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><b style="font-size:24px">Analytics</b><span style="width:50px"></span></div><div id="pc"></div>`;
+openSheet();pAnalytics()}
+
+function anRange(){const now=new Date();
+if(an.per=='all'){const first=D.shoots.map(s=>s.date).sort()[0];return{f:()=>true,label:first?'Since '+new Date(first+'T00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'}):'All time',yr:now.getFullYear(),adf:()=>true}}
+if(an.per=='year'){const y=String(an.yr);return{f:s=>s.date.startsWith(y),label:y,yr:an.yr,adf:a=>(a.date||'').startsWith(y)}}
+if(an.per=='month'){const[k,n]=monthKey(an.mo);return{f:s=>s.date.startsWith(k),label:an.mo==0?'This month':n+' '+k.slice(0,4),yr:+k.slice(0,4),adf:a=>(a.date||'').startsWith(k)}}
+const fr=an.from||'0000',to=an.to||'9999';
+return{f:s=>s.date>=fr&&s.date<=to,label:(an.from?fmtDate(an.from):'Start')+' – '+(an.to?fmtDate(an.to):'Now'),yr:+(an.from||iso(now)).slice(0,4),adf:a=>(a.date||'')>=fr&&(a.date||'')<=to}}
+
+function pAnalytics(){const R=anRange(),arr=D.shoots.filter(R.f),cy=new Date().getFullYear();
+let h=`<div class="seg2"><button class="${an.mode=='shoots'?'on':''}" onclick="an.mode='shoots';pAnalytics()">${IC.cam}Shoots</button><button class="${an.mode=='fin'?'on':''}" onclick="an.mode='fin';pAnalytics()">${IC.dollar}Finances</button></div>
+<div class="pc4">${[['all','All'],['year','Year'],['month','Month'],['custom','Custom']].map(([k,t])=>`<button class="${an.per==k?'on':''}" onclick="an.per='${k}';pAnalytics()">${t}</button>`).join('')}</div>`;
+if(an.per=='month')h+=`<div class="mcs">${[an.mo-1,an.mo,an.mo+1].map(o=>`<button class="mc${o==an.mo?' on':''}" onclick="an.mo=${o};pAnalytics()">${o==0?'This month':monthKey(o)[1]}</button>`).join('')}</div>`;
+if(an.per=='year')h+=`<div class="mcs">${[an.yr-1,an.yr,an.yr+1].map(y=>`<button class="mc${y==an.yr?' on':''}" onclick="an.yr=${y};pAnalytics()">${y==cy?'This year':y}</button>`).join('')}</div>`;
+if(an.per=='custom')h+=`<div class="row" style="margin-bottom:14px"><div style="flex:1"><label>From</label><input type="date" value="${an.from}" onchange="an.from=this.value;pAnalytics()" style="margin:0"></div><div style="flex:1"><label>To</label><input type="date" value="${an.to}" onchange="an.to=this.value;pAnalytics()" style="margin:0"></div></div>`;
+const head=t=>`<div class="row"><p class="lab">${t}</p><span class="chip" style="background:#12312e;color:#5eead4">${esc(R.label)}</span></div>`;
+const empty=`<div style="text-align:center;padding:34px 0 18px;color:var(--mu)"><span style="display:inline-block;width:40px;height:40px">${IC.chart}</span><p style="margin:8px 0 0;font-size:17px">No data for this period</p></div>`;
+if(an.mode=='fin'){
+const tot=sum(arr,s=>s.price),paid=sum(arr,s=>Math.min(+s.paid||0,+s.price||0));
+h+=`<div class="card">${head('Total revenue')}${arr.length?`<p class="big" style="font-size:44px;margin:16px 0 10px">${$$(tot)}</p><div class="row"><span style="color:var(--ac);font-weight:600;font-size:16px">${$$(paid)} collected</span><span class="ml" style="font-size:15px">${$$(tot-paid)} pending</span></div>`:empty}</div>`;
+if(arr.length){
+if(an.per=='month'){const ty={};arr.forEach(s=>{ty[s.type]=(ty[s.type]||0)+(+s.price||0)});const mx=Math.max(1,...Object.values(ty));
+h+=`<div class="card"><p class="lab">By type</p>${Object.entries(ty).sort((a,b)=>b[1]-a[1]).map(([t,v])=>hb(esc(t),v,mx,'var(--ac)',$(v))).join('')}</div>`}
+else{const ms=[...Array(12)].map((_,i)=>sum(arr.filter(s=>s.date.startsWith(R.yr+'-'+String(i+1).padStart(2,'0'))),s=>s.price)),mx=Math.max(1,...ms);
+h+=`<div class="card"><p class="lab" style="margin-bottom:16px">By month${an.per=='year'?'':' · '+R.yr}</p><div class="vb">${ms.map((v,i)=>`<div><i style="height:${v?Math.max(10,Math.round(v/mx*140)):4}px;background:${v?'var(--ac)':'var(--card2)'}"></i><span class="ml">${new Date(2000,i,1).toLocaleDateString('en-GB',{month:'short'})}</span></div>`).join('')}</div></div>`}
+h+=`<p class="lab" style="margin:22px 0 10px">Details</p><div class="sg"><div class="dc">${IC.rec}<p class="n">${arr.length}</p><p class="ml" style="font-size:15px">Shoots</p></div><div class="dc">${IC.trend}<p class="n">${$$(tot/arr.length)}</p><p class="ml" style="font-size:15px">Avg / Shoot</p></div></div>`}
+const sp=sum(D.ads.filter(R.adf),a=>a.spent),fa=sum(arr.filter(s=>s.src>0),s=>s.price);
+if(sp||fa)h+=`<div class="card"><p class="lab" style="margin-bottom:4px">Ads in this period</p>${info('Spent on ads',`<b style="color:var(--bad)">${$(sp)}</b>`)}${info('Earned from ads',`<b style="color:#5eead4">${$(fa)}</b>`)}${info('Return per $1','<b>$'+(sp?(fa/sp).toFixed(1):'0.0')+'</b>')}</div>`}
+else{
+h+=`<div class="card">${head('Total shoots')}${arr.length?`<p class="big" style="font-size:44px;margin:16px 0 0">${arr.length}</p>`:empty}</div>`;
+if(arr.length){const n=arr.length;
+h+=`<div class="card"><p class="lab">By status</p>${ST.map(x=>{const c=arr.filter(s=>stOf(s)==x).length;return hb(x,c,n,STC[x],c)}).join('')}</div>`;
+const ty={};arr.forEach(s=>{ty[s.type]=(ty[s.type]||0)+1});const mt=Math.max(...Object.values(ty));
+h+=`<div class="card"><p class="lab">By type</p>${Object.entries(ty).sort((a,b)=>b[1]-a[1]).map(([t,c])=>hb(esc(t),c,mt,'var(--ac)',c)).join('')}</div>`;
+const so={};arr.forEach(s=>{const k=srcName(s.src);so[k]=(so[k]||0)+1});const mso=Math.max(...Object.values(so));
+h+=`<div class="card"><p class="lab">Where clients came from</p>${Object.entries(so).sort((a,b)=>b[1]-a[1]).map(([t,c])=>hb(esc(t),c,mso,'#a78bfa',c)).join('')}</div>`}}
+g('pc').innerHTML=h}
 
 function pEquip(){g('pc').innerHTML=`<p class="ml" style="margin-bottom:12px;font-size:14px">This list is added to every new shoot as a checklist.</p><div class="card">${D.gear.map((x,i)=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--bd)"><span style="font-size:16px">${esc(x)}</span><button class="lnk" style="color:var(--bad);font-size:15px" onclick="D.gear.splice(${i},1);save();pEquip()">Remove</button></div>`).join('')}<div class="row" style="margin-top:14px"><input id="ng" placeholder="Add equipment" style="margin:0"><button class="ghost" style="width:auto;padding:12px 18px" onclick="const v=g('ng').value.trim();if(v){D.gear.push(v);save();pEquip()}">Add</button></div></div>`}
 

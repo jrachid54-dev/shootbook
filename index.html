@@ -26,6 +26,7 @@ main{padding:0 18px}
 .hero{background:#17262a;border:1px solid #24383c;border-radius:22px;padding:20px;margin-bottom:18px}
 .badge{display:inline-flex;align-items:center;gap:8px;background:#12312e;color:#5eead4;border-radius:20px;padding:6px 14px;font-size:15px;font-weight:600}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ac);display:inline-block}
+.rd{width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block;margin-right:10px;vertical-align:1px}
 .chip{background:var(--card2);color:var(--tx);border-radius:20px;padding:6px 14px;font-size:14px;font-weight:600;display:inline-block;white-space:nowrap}
 .ht{font-size:28px;font-weight:700;margin:14px 0 6px}
 .hl{color:#cbd5e1;margin:0;font-size:17px}
@@ -47,6 +48,7 @@ main{padding:0 18px}
 .sec{color:var(--mu);font-size:15px;margin:22px 0 10px}
 .mh{color:var(--mu);font-size:20px;font-weight:600;margin:24px 0 12px}
 .pt{font-size:30px;font-weight:700;margin:4px 0 16px}
+.mt{font-size:19px;font-weight:600;margin:0}
 .sc2{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:0 16px 14px;margin-bottom:12px}
 .sc2 .top{border-bottom:1px solid var(--bd);padding:14px 0 12px;margin-bottom:12px;font-weight:600;font-size:16px}
 .cn{font-size:18px;font-weight:600;margin:0 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -77,9 +79,9 @@ label{font-size:13px;color:var(--mu);display:block;margin-bottom:4px}
 .cal .has::after{content:'';position:absolute;bottom:3px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--ac)}
 .cal .today{outline:2px solid var(--ac)}
 .cal .sel{background:var(--ac);color:#fff}
-.mood{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.mood{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
 .mood img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}
-.chk{display:flex;align-items:center;gap:12px;padding:7px 0;margin:0;font-size:16px;color:var(--tx)}
+.chk{display:flex;align-items:center;gap:12px;padding:8px 0;margin:0;font-size:16px;color:var(--tx)}
 .chk input{width:22px;height:22px;margin:0;accent-color:var(--ac)}
 .warn{background:#f59e0b22;color:var(--warn);padding:10px 12px;border-radius:12px;font-size:14px;margin-bottom:10px}
 .av{width:120px;height:120px;border-radius:50%;background:var(--card2);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;color:var(--mu)}
@@ -87,9 +89,38 @@ label{font-size:13px;color:var(--mu);display:block;margin-bottom:4px}
 .mi{background:var(--card);border-radius:20px;padding:16px;display:flex;align-items:center;gap:16px;margin-bottom:14px}
 .mic{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex:0 0 52px}
 .mic svg{width:26px;height:26px}
-.mt{font-size:19px;font-weight:600;margin:0}
 .mi>svg{width:22px;height:22px;color:var(--mu)}
 .out{background:var(--card);color:var(--bad);border:0;border-radius:24px;width:100%;padding:16px;font-size:19px;font-weight:600;margin-top:8px}
+.cb{width:50px;height:50px;border-radius:50%;background:var(--card);border:0;color:var(--tx);display:flex;align-items:center;justify-content:center;flex:0 0 50px}
+.cb2{background:none;border:0;color:var(--mu);width:42px;height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:center}
+.cb svg,.cb2 svg{width:24px;height:24px}
+.dn{flex:1;font-size:30px;font-weight:800;margin:0 0 0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dt{display:grid;grid-template-columns:repeat(5,1fr);background:var(--card);border-radius:18px;padding:6px;gap:4px;margin-bottom:14px}
+.dt button{background:none;border:0;color:var(--mu);border-radius:14px;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:14px}
+.dt button svg{width:22px;height:22px}
+.dt button.on{background:#12312e;color:var(--ac)}
+.db{width:76px;height:84px;border-radius:16px;background:#12312e;color:var(--ac);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 76px}
+.db span{font-size:14px;font-weight:600;letter-spacing:.08em}
+.db b{font-size:34px;line-height:1.1}
+.dw{font-size:22px;font-weight:700;margin:0 0 4px}
+.si{display:inline-flex;width:18px;height:18px;vertical-align:-3px;margin-right:6px}
+.loc{display:flex;align-items:center;gap:12px;min-width:0;flex:1;color:var(--tx);text-decoration:none}
+.loc .ic{width:42px;height:42px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;flex:0 0 42px;color:var(--mu)}
+.loc svg{width:20px;height:20px}
+.lt{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wf{display:flex;align-items:center}
+.wf button{width:56px;height:56px;border-radius:50%;border:2px solid var(--bd);background:none;color:var(--mu);flex:0 0 56px;display:flex;align-items:center;justify-content:center}
+.wf button svg{width:24px;height:24px}
+.wf button.on{color:#fff}
+.wf i{flex:1;height:3px;background:var(--bd)}
+.wf i.on{background:var(--ac)}
+.wfl{display:flex;justify-content:space-between;margin:10px -8px 18px}
+.wfl span{width:72px;text-align:center;font-size:13px;color:var(--mu)}
+.cs{background:#12302b;border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pdf{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border:1.5px solid #3b82f6;background:none;color:#60a5fa;border-radius:18px;font-size:18px;font-weight:600}
+.pdf svg{width:22px;height:22px}
+#print{display:none}
+@media print{html,body{background:#fff!important;padding:0!important}body>*{display:none!important}#print{display:block!important;color:#000;font-family:sans-serif;padding:24px}}
 </style>
 </head>
 <body class="wait">
@@ -110,6 +141,7 @@ label{font-size:13px;color:var(--mu);display:block;margin-bottom:4px}
 <button class="fab" id="fab" onclick="openShoot()">+</button>
 <nav id="nav"></nav>
 <div class="sheet" id="sheet"><div id="sin"></div></div>
+<div id="print"></div>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyAbeKrVdf2W4T6UpbdF4WXYuIr-1bcFhkc",
@@ -132,11 +164,22 @@ user:svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
 search:svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'),
 list:svg('<path d="M4 6h16M4 12h16M4 18h16"/>'),
 chev:svg('<path d="M9 6l6 6-6 6"/>'),
+back:svg('<path d="M15 6l-6 6 6 6"/>'),
 chart:svg('<path d="M6 20V12M12 20V6M18 20v-9"/>'),
 bag:svg('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'),
 img:svg('<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 16l-5-5-9 9"/>'),
 gear:svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'),
-dl:svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')};
+dl:svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+pen:svg('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>'),
+trash:svg('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'),
+trend:svg('<path d="M3 17l6-6 4 4 8-8"/>'),
+dollar:svg('<path d="M12 3v18M16 7.5c0-1.9-1.8-3-4-3s-4 1.1-4 3 1.8 2.6 4 3 4 1.1 4 3-1.8 3-4 3-4-1.1-4-3"/>'),
+wrench:svg('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>'),
+pin:svg('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'),
+clock:svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+check:svg('<path d="M5 12l5 5 9-10"/>'),
+send:svg('<path d="M4 12l16-8-6 16-3-7-7-1z"/>'),
+file:svg('<path d="M14 3H6v18h12V7l-4-4z"/><path d="M14 3v4h4"/>')};
 const TABS=[['dash','Dashboard',IC.grid],['shoots','Photoshoots',IC.cal],['ads','Ads',IC.ads],['profile','Profile',IC.user]];
 const ST=['Pending','Confirmed','Editing','Delivered'];
 const STC={Pending:'#f59e0b',Confirmed:'#22c55e',Editing:'#3b82f6',Delivered:'#6b7280'};
@@ -145,7 +188,7 @@ const K='shootbook_v1';
 const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector'],name:''});
 let D=EMPTY(),user=null,unsub=null;
 let tab='dash',dm=0,filt='All',q='',showQ=false,view='list',calM=new Date(),selDay=null,jump=false;
-let cur=null,isNew=false,moodLoaded=false;
+let cur=null,isNew=false,dId=null,dtab='status',dMood=null;
 const g=id=>document.getElementById(id);
 const sh=g('sheet'),sin=g('sin');
 const userRef=()=>db.collection('users').doc(user.uid);
@@ -161,6 +204,7 @@ const srcName=id=>id==0?'Referral':id==-1?'Organic social':((D.ads.find(a=>a.id=
 const sum=(arr,f)=>arr.reduce((t,x)=>t+(+f(x)||0),0);
 const byDate=(a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''));
 const stOf=s=>s.status||'Confirmed';
+const info=(k,v)=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--bd)"><span class="ml" style="font-size:15px">${k}</span><span style="font-size:15px;text-align:right">${v}</span></div>`;
 function monthKey(o){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+o);return[iso(d).slice(0,7),d.toLocaleDateString('en-GB',{month:'long'})]}
 
 g('nav').innerHTML=TABS.map(t=>`<button data-t="${t[0]}">${t[2]}${t[1]}</button>`).join('');
@@ -190,7 +234,7 @@ function signup(){const[e,p]=lv();if(!e||!p){g('l_err').textContent='Enter your 
 function resetPw(){const e=g('l_email').value.trim();if(!e){g('l_err').textContent='Enter your email first.';return}auth.sendPasswordResetEmail(e).then(()=>alert('Check your email for a reset link.')).catch(lerr)}
 
 function shootCard(s){const st=stOf(s),owed=(+s.price||0)-(+s.paid||0);
-return `<div class="sc2" onclick="openShoot(${s.id})"><div class="row top"><span>${fmtDate(s.date)}${s.time?' <span style="color:var(--mu)">·</span> '+tr(s):''}</span><span style="color:${STC[st]};font-size:14px;font-weight:500">${st}</span></div><div class="row"><div style="min-width:0"><p class="cn">${esc(s.client)}</p><p class="ml" style="font-size:15px">${esc(s.loc||s.type)}</p></div><div style="text-align:right"><p class="pr">${$$(s.price)}</p>${owed>0?`<p class="ml" style="color:var(--warn)">${$(owed)} owed</p>`:''}</div></div></div>`}
+return `<div class="sc2" onclick="openDetail(${s.id})"><div class="row top"><span>${fmtDate(s.date)}${s.time?' <span style="color:var(--mu)">·</span> '+tr(s):''}</span><span style="color:${STC[st]};font-size:14px;font-weight:500">${st}</span></div><div class="row"><div style="min-width:0"><p class="cn">${esc(s.client)}</p><p class="ml" style="font-size:15px">${esc(s.loc||s.type)}</p></div><p class="pr">${owed>0?'<i class="rd"></i>':''}${$$(s.price)}</p></div></div>`}
 
 function vDash(){
 const now=new Date(),t=iso(now),hm=now.toTimeString().slice(0,5);
@@ -199,7 +243,7 @@ let h;
 if(!up)h=`<div class="hero"><span class="badge"><i class="dot"></i>Up next</span><p class="ht">No upcoming shoots</p><p class="hl">Tap + to add your next booking.</p></div>`;
 else{const days=Math.round((new Date(up.date+'T00:00')-new Date(t+'T00:00'))/864e5);
 const when=days==0?'Today':days==1?'Tomorrow':'In '+days+' days';
-h=`<div class="hero" onclick="openShoot(${up.id})"><div class="row"><span class="badge"><i class="dot"></i>Up next</span><span class="chip">${when}</span></div><p class="ht">${esc(up.client)}</p>${up.loc?`<p class="hl">📍 ${esc(up.loc)}</p>`:''}<div class="hr"></div><div class="row" style="justify-content:flex-start;gap:40px"><div><p class="lab">Date</p><p class="hv">${fmtDate(up.date)}</p></div>${up.time?`<div><p class="lab">Time</p><p class="hv">${tr(up)}</p></div>`:''}</div></div>`}
+h=`<div class="hero" onclick="openDetail(${up.id})"><div class="row"><span class="badge"><i class="dot"></i>Up next</span><span class="chip">${when}</span></div><p class="ht">${esc(up.client)}</p>${up.loc?`<p class="hl">📍 ${esc(up.loc)}</p>`:''}<div class="hr"></div><div class="row" style="justify-content:flex-start;gap:40px"><div><p class="lab">Date</p><p class="hv">${fmtDate(up.date)}</p></div>${up.time?`<div><p class="lab">Time</p><p class="hv">${tr(up)}</p></div>`:''}</div></div>`}
 h+=`<div class="mcs">${[dm-1,dm,dm+1].map(o=>`<button class="mc${o==dm?' on':''}" onclick="dm=${o};render()">${o==0?'This month':monthKey(o)[1]}</button>`).join('')}</div>`;
 const mk=monthKey(dm)[0],ms=D.shoots.filter(s=>s.date.startsWith(mk));
 const tot=sum(ms,s=>s.price),paid=sum(ms,s=>Math.min(+s.paid||0,+s.price||0)),pct=tot?paid/tot*100:0;
@@ -253,14 +297,14 @@ const types={};D.shoots.forEach(s=>{types[s.type]=types[s.type]||[0,0];types[s.t
 const sp=sum(D.ads,a=>a.spent),fa=sum(D.shoots.filter(s=>s.src>0),s=>s.price);
 g('pc').innerHTML=`<div class="sg"><div class="card" style="margin:0"><p class="ml">This year</p><p class="sn" style="font-size:24px">${$(yt)}</p><p class="ml">${ys.length} shoots</p></div><div class="card" style="margin:0"><p class="ml">Average per shoot</p><p class="sn" style="font-size:24px">${$(ys.length?yt/ys.length:0)}</p></div></div>
 <div class="card"><p class="lab" style="margin-bottom:14px">Earnings, last 6 months</p><div style="display:flex;align-items:flex-end;gap:8px;height:170px">${months.map(m=>`<div style="flex:1;text-align:center"><div class="ml" style="font-size:11px">${m[1]?$(m[1]):''}</div><div style="background:var(--ac);border-radius:8px 8px 0 0;height:${Math.round(m[1]/mx*110)}px;margin-top:4px"></div><div class="ml" style="margin-top:6px">${m[0]}</div></div>`).join('')}</div></div>
-<div class="card"><p class="lab" style="margin-bottom:6px">By type</p>${Object.entries(types).sort((a,b)=>b[1][1]-a[1][1]).map(([t,v])=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--bd)"><span>${esc(t)} <span class="ml">· ${v[0]}</span></span><b>${$(v[1])}</b></div>`).join('')||'<p class="ml">No shoots yet.</p>'}</div>
-<div class="card"><p class="lab" style="margin-bottom:10px">Ads</p><div class="row"><span>Spent</span><b style="color:var(--bad)">${$(sp)}</b></div><div class="row" style="margin-top:8px"><span>Earned from ads</span><b style="color:#5eead4">${$(fa)}</b></div><div class="row" style="margin-top:8px"><span>Return per $1</span><b>$${sp?(fa/sp).toFixed(1):'0.0'}</b></div></div>`}
+<div class="card"><p class="lab" style="margin-bottom:6px">By type</p>${Object.entries(types).sort((a,b)=>b[1][1]-a[1][1]).map(([t,v])=>info(esc(t)+' · '+v[0],'<b>'+$(v[1])+'</b>')).join('')||'<p class="ml">No shoots yet.</p>'}</div>
+<div class="card"><p class="lab" style="margin-bottom:6px">Ads</p>${info('Spent',$(sp))}${info('Earned from ads',$(fa))}${info('Return per $1','$'+(sp?(fa/sp).toFixed(1):'0.0'))}</div>`}
 
 function pEquip(){g('pc').innerHTML=`<p class="ml" style="margin-bottom:12px;font-size:14px">This list is added to every new shoot as a checklist.</p><div class="card">${D.gear.map((x,i)=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--bd)"><span style="font-size:16px">${esc(x)}</span><button class="lnk" style="color:var(--bad);font-size:15px" onclick="D.gear.splice(${i},1);save();pEquip()">Remove</button></div>`).join('')}<div class="row" style="margin-top:14px"><input id="ng" placeholder="Add equipment" style="margin:0"><button class="ghost" style="width:auto;padding:12px 18px" onclick="const v=g('ng').value.trim();if(v){D.gear.push(v);save();pEquip()}">Add</button></div></div>`}
 
 function pMood(){g('pc').innerHTML='<p class="ml">Loading photos…</p>';
 userRef().collection('mood').get().then(qs=>{let h='';qs.forEach(d=>{const s=D.shoots.find(x=>String(x.id)==d.id),imgs=d.data().imgs||[];if(!imgs.length)return;
-h+=`<p class="sec">${esc(s?s.client:'Deleted shoot')}${s?' · '+fmtDate(s.date):''}</p><div class="mood">${imgs.map(m=>`<img src="${m}"${s?` onclick="closeSheet();openShoot(${s.id})"`:''}>`).join('')}</div>`});
+h+=`<p class="sec">${esc(s?s.client:'Deleted shoot')}${s?' · '+fmtDate(s.date):''}</p><div class="mood">${imgs.map(m=>`<img src="${m}"${s?` onclick="dtab='mood';openDetail(${s.id})"`:''}>`).join('')}</div>`});
 g('pc').innerHTML=h||'<div class="card ml" style="font-size:15px">No moodboard photos yet. Add some inside a shoot.</div>'}).catch(()=>{g('pc').innerHTML='<div class="card ml">Could not load photos.</div>'})}
 
 function pSettings(){g('pc').innerHTML=`<div class="card"><label>Your name</label><input id="s_name" value="${esc(D.name)}" placeholder="Photographer"><button class="btn" onclick="D.name=g('s_name').value.trim();save();alert('Saved')">Save</button></div>
@@ -268,50 +312,77 @@ function pSettings(){g('pc').innerHTML=`<div class="card"><label>Your name</labe
 <div class="card"><label>Full backup (without moodboard photos)</label><button class="ghost" onclick="exportData()">Export backup</button><div style="height:10px"></div><label class="ghost" style="margin:0;color:var(--tx);font-size:15px">Restore backup<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])"></label></div>`}
 
 function openSheet(){sh.classList.add('open');sh.scrollTop=0;document.body.style.overflow='hidden'}
-function closeSheet(){sh.classList.remove('open');document.body.style.overflow=''}
+function closeSheet(){sh.classList.remove('open');document.body.style.overflow='';dId=null}
+
+function openDetail(id){if(dId!=id){if(dtab!='mood')dtab='status';dMood=null}dId=id;drawDetail();openSheet()}
+function updateShoot(id,fn){const s=D.shoots.find(x=>x.id==id);if(!s)return;fn(s);save();if(dId==id)drawDetail();render()}
+function drawDetail(){const s=D.shoots.find(x=>x.id==dId);if(!s){closeSheet();return}
+const st=stOf(s),due=(+s.price||0)-(+s.paid||0),dt=new Date(s.date+'T00:00');
+const tabs=[['status','Status',IC.trend],['notes','Notes',IC.pen],['pay','Pay',IC.dollar],['gear','Gear',IC.wrench],['mood','Mood',IC.img]];
+sin.innerHTML=`<div class="row" style="margin-bottom:16px;gap:4px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><h2 class="dn">${esc(s.client)}</h2><button class="cb2" onclick="openShoot(${s.id})" aria-label="Edit">${IC.pen}</button><button class="cb2" onclick="cur={id:${s.id}};delShoot()" aria-label="Delete">${IC.trash}</button></div>
+<div class="dt">${tabs.map(t=>`<button class="${dtab==t[0]?'on':''}" onclick="dtab='${t[0]}';drawDetail()">${t[2]}<span>${t[1]}</span></button>`).join('')}</div>
+<div class="card" style="border-bottom:3px solid ${STC[st]}"><div class="row" style="justify-content:flex-start;gap:16px"><div class="db"><span>${dt.toLocaleDateString('en-GB',{month:'short'}).toUpperCase()}</span><b>${dt.getDate()}</b></div><div><p class="dw">${dt.toLocaleDateString('en-GB',{weekday:'long'})}</p><p class="ml" style="font-size:17px"><span class="si">${IC.clock}</span>${s.time?tr(s).replace('–',' – '):'No time set'}</p></div></div><div class="hr" style="background:var(--bd)"></div><div class="row"><a class="loc"${s.loc?` href="https://maps.google.com/?q=${encodeURIComponent(s.loc)}"`:''}><span class="ic">${IC.pin}</span><span class="lt">${esc(s.loc||'No location')}</span></a><div style="text-align:right"><p class="pr" style="font-size:22px">${$$(s.price)}</p><p style="margin:0;font-size:15px;color:${due>0?'#ef4444':'#5eead4'}">${due>0?$$(due)+' due':'Paid in full'}</p></div></div></div>
+<div id="dtc"></div>`;
+({status:dStatus,notes:dNotes,pay:dPay,gear:dGear,mood:dMoodTab})[dtab](s)}
+
+function dStatus(s){const i=ST.indexOf(stOf(s)),nx=ST[i+1],ic=[IC.clock,IC.check,IC.pen,IC.send];
+const wa=(s.phone||'').replace(/\D/g,''),ig=(s.insta||'').replace('@','').trim();
+g('dtc').innerHTML=`<div class="card"><div class="row"><p class="mt">Workflow progress</p><b style="color:var(--ac);font-size:20px">${Math.round(i/3*100)}%</b></div><p class="ml" style="font-size:15px;margin:4px 0 18px">Update status by tapping stages</p>
+<div class="wf">${ST.map((x,j)=>`${j?`<i class="${j<=i?'on':''}"></i>`:''}<button onclick="setStatus('${x}')" class="${j<=i?'on':''}" style="${j<=i?`background:${STC[x]};border-color:${STC[x]}`:''}" aria-label="${x}">${ic[j]}</button>`).join('')}</div>
+<div class="wfl">${ST.map((x,j)=>`<span style="${j==i?'color:var(--tx);font-weight:600':''}">${x}</span>`).join('')}</div>
+<div class="cs"><div><p class="lab">Current stage</p><p style="margin:0;font-size:19px;font-weight:700;color:${STC[ST[i]]}">${ST[i]}</p></div>${nx?`<button class="ghost" style="width:auto;padding:12px 16px;background:#0b0c0f" onclick="setStatus('${nx}')">Mark as ${nx}</button>`:''}</div></div>
+<div class="card"><p class="lab" style="margin-bottom:4px">Client</p>${info('Type',esc(s.type))}${info('Source',esc(srcName(s.src)))}${s.phone?info('Phone',`<a href="tel:${esc(s.phone)}" style="color:var(--ac)">${esc(s.phone)}</a>`):''}${ig?info('Instagram',`<a href="https://instagram.com/${encodeURIComponent(ig)}" style="color:var(--ac)">@${esc(ig)}</a>`):''}${wa?`<a class="ghost" style="margin-top:14px" href="https://wa.me/${wa}">Message on WhatsApp</a>`:''}</div>
+<button class="pdf" onclick="printBrief()">${IC.file}Export PDF</button>`}
+function setStatus(x){updateShoot(dId,s=>{s.status=x})}
+
+function dNotes(s){g('dtc').innerHTML=`<div class="card"><p class="lab" style="margin-bottom:10px">Notes</p><textarea id="dnt" rows="8" placeholder="Client preferences, lighting ideas, shot list">${esc(s.notes)}</textarea><button class="btn" onclick="const v=g('dnt').value;updateShoot(dId,s=>{s.notes=v});alert('Saved')">Save notes</button></div>`}
+
+function dPay(s){const due=(+s.price||0)-(+s.paid||0),pct=+s.price?Math.min(100,(+s.paid||0)/s.price*100):0;
+g('dtc').innerHTML=`<div class="card"><div class="row"><div><p class="lab">Paid</p><p class="big" style="font-size:26px;color:#5eead4">${$$(s.paid)}</p></div><div style="text-align:right"><p class="lab">Due</p><p class="big" style="font-size:26px;color:${due>0?'#ef4444':'var(--mu)'}">${$$(Math.max(due,0))}</p></div></div><div class="bar"><i style="width:${pct}%"></i></div><p class="ml" style="font-size:14px">Total ${$$(s.price)}</p></div>
+<div class="card"><label>Add a payment ($)</label><div class="row"><input id="pa" type="number" inputmode="decimal" placeholder="50" style="margin:0"><button class="btn" style="width:auto;padding:12px 20px" onclick="addPay()">Add</button></div>${due>0?`<button class="ghost" style="margin-top:12px" onclick="addPay(${due})">Mark fully paid</button>`:''}</div>
+${(s.pays||[]).length?`<p class="sec">Payment history</p><div class="card">${s.pays.slice().reverse().map(p=>info(fmtDate(p.d),$$(p.a))).join('')}</div>`:''}`}
+function addPay(v){const a=v||+g('pa').value;if(!a){alert('Enter an amount.');return}updateShoot(dId,s=>{s.paid=(+s.paid||0)+a;s.pays=(s.pays||[]).concat({a,d:iso(new Date())})})}
+
+function dGear(s){const gr=s.gear||[],n=gr.filter(x=>x.ok).length;
+g('dtc').innerHTML=`<div class="card"><div class="row" style="margin-bottom:6px"><p class="mt">Packing list</p><span class="chip">${n}/${gr.length} packed</span></div>${gr.map((x,i)=>`<label class="chk"><input type="checkbox"${x.ok?' checked':''} onchange="const c=this.checked;updateShoot(dId,s=>{s.gear[${i}].ok=c})"><span>${esc(x.n)}</span></label>`).join('')}<div class="row" style="margin-top:10px"><input id="dg" placeholder="Add item" style="margin:0"><button class="ghost" style="width:auto;padding:12px 16px" onclick="const v=g('dg').value.trim();if(v)updateShoot(dId,s=>{s.gear=(s.gear||[]).concat({n:v,ok:false})})">Add</button></div></div>`}
+
+function dMoodTab(s){if(dMood===null){g('dtc').innerHTML='<div class="card ml" style="font-size:15px">Loading photos…</div>';const id=s.id;
+moodRef(id).get().then(d=>{if(dId==id){dMood=d.exists?(d.data().imgs||[]):[];if(dtab=='mood')drawDetail()}}).catch(()=>{dMood=[];if(dId==id)drawDetail()});return}
+g('dtc').innerHTML=`<div class="card">${dMood.length?`<div class="mood">${dMood.map((m,i)=>`<img src="${m}" onclick="if(confirm('Remove this photo?')){dMood.splice(${i},1);saveMood()}">`).join('')}</div>`:'<p class="ml" style="font-size:15px;margin-bottom:12px">No reference photos yet.</p>'}<label class="ghost" style="margin:0;color:var(--tx);font-size:15px">Add photos<input type="file" accept="image/*" multiple style="display:none" onchange="addDMood(this.files)"></label></div>`}
+function saveMood(){let cut=false;while(dMood.length&&JSON.stringify(dMood).length>950000){dMood.pop();cut=true}if(cut)alert('Too many photos for one shoot. Some were not added.');
+const id=dId;(dMood.length?moodRef(id).set({imgs:dMood}):moodRef(id).delete()).catch(()=>{});updateShoot(id,s=>{s.moodN=dMood.length})}
+function addDMood(files){let left=files.length;if(!left)return;[...files].forEach(f=>compress(f,u=>{dMood.push(u);if(--left==0)saveMood()}))}
+function compress(f,cb){const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const s=Math.min(1,500/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.7))};img.src=e.target.result};r.readAsDataURL(f)}
+
+function printBrief(){const s=D.shoots.find(x=>x.id==dId);if(!s)return;const due=(+s.price||0)-(+s.paid||0);
+g('print').innerHTML=`<h1 style="margin:0 0 6px">${esc(s.client)}</h1><p>${fmtDate(s.date)} ${tr(s)}${s.loc?' · '+esc(s.loc):''}</p><p>Type: ${esc(s.type)} · Status: ${stOf(s)}</p><p>Price: ${$$(s.price)} · Paid: ${$$(s.paid)} · Due: ${$$(Math.max(due,0))}</p>${s.phone?`<p>Phone: ${esc(s.phone)}</p>`:''}${s.insta?`<p>Instagram: ${esc(s.insta)}</p>`:''}${s.notes?`<h3>Notes</h3><p style="white-space:pre-wrap">${esc(s.notes)}</p>`:''}${(s.gear||[]).length?`<h3>Gear</h3><ul>${s.gear.map(x=>`<li>${x.ok?'☑':'☐'} ${esc(x.n)}</li>`).join('')}</ul>`:''}`;
+window.print()}
 
 function openShoot(id){
 const s=D.shoots.find(x=>x.id==id);isNew=!s;
-cur=s?JSON.parse(JSON.stringify(s)):{id:Date.now(),client:'',phone:'',insta:'',type:'Portrait',status:'Confirmed',date:selDay||iso(new Date()),time:'',end:'',loc:'',price:'',paid:'',src:0,notes:'',gear:D.gear.map(n=>({n,ok:false})),moodN:0};
-cur.mood=[];moodLoaded=isNew||!cur.moodN;
+cur=s?JSON.parse(JSON.stringify(s)):{id:Date.now(),client:'',phone:'',insta:'',type:'Portrait',status:'Confirmed',date:selDay||iso(new Date()),time:'',end:'',loc:'',price:'',paid:'',src:0,notes:'',gear:D.gear.map(n=>({n,ok:false})),pays:[],moodN:0};
 const opts=[[0,'Referral / word of mouth'],[-1,'Organic social (no ad)'],...D.ads.map(a=>[a.id,a.name+' ('+a.plat+' ad)'])];
-const wa=(cur.phone||'').replace(/\D/g,'');
-sin.innerHTML=`<div class="row" style="margin-bottom:14px"><button class="lnk" onclick="closeSheet()">Cancel</button><b style="font-size:17px">${isNew?'New shoot':'Shoot'}</b><button class="lnk" onclick="saveShoot()"><b>Save</b></button></div>
+sin.innerHTML=`<div class="row" style="margin-bottom:14px"><button class="lnk" onclick="${isNew?'closeSheet()':'openDetail('+cur.id+')'}">Cancel</button><b style="font-size:17px">${isNew?'New shoot':'Edit shoot'}</b><button class="lnk" onclick="saveShoot()"><b>Save</b></button></div>
 <div class="card"><label>Client name</label><input id="f_client" value="${esc(cur.client)}" placeholder="Maya and Karim">
 <label>Phone</label><input id="f_phone" type="tel" value="${esc(cur.phone)}" placeholder="+961 70 123 456">
-<label>Instagram</label><input id="f_insta" value="${esc(cur.insta)}" placeholder="@username">
-${wa?`<a class="ghost" href="https://wa.me/${wa}">Message on WhatsApp</a>`:''}</div>
+<label>Instagram</label><input id="f_insta" value="${esc(cur.insta)}" placeholder="@username" style="margin:0"></div>
 <div class="card"><label>Status</label><select id="f_status">${ST.map(t=>`<option${t==stOf(cur)?' selected':''}>${t}</option>`).join('')}</select>
 <label>Type</label><select id="f_type">${TYPES.map(t=>`<option${t==cur.type?' selected':''}>${t}</option>`).join('')}</select>
 <label>Date</label><input id="f_date" type="date" value="${cur.date}" onchange="overlap()">
 <div class="row"><div style="flex:1"><label>Start</label><input id="f_time" type="time" value="${cur.time||''}"></div><div style="flex:1"><label>End</label><input id="f_end" type="time" value="${cur.end||''}"></div></div>
 <div id="ov"></div>
-<label>Location</label><input id="f_loc" value="${esc(cur.loc)}" placeholder="Batroun"></div>
+<label>Location</label><input id="f_loc" value="${esc(cur.loc)}" placeholder="Batroun" style="margin:0"></div>
 <div class="card"><label>Price ($)</label><input id="f_price" type="number" inputmode="decimal" value="${cur.price}">
 <label>Paid so far ($)</label><input id="f_paid" type="number" inputmode="decimal" value="${cur.paid}">
-<button class="ghost" onclick="g('f_paid').value=g('f_price').value">Mark fully paid</button>
-<label style="margin-top:14px">Where did this client come from?</label><select id="f_src">${opts.map(o=>`<option value="${o[0]}"${o[0]==cur.src?' selected':''}>${esc(o[1])}</option>`).join('')}</select></div>
-<p class="sec">Gear checklist</p><div class="card" id="gearBox"></div>
-<p class="sec">Notes</p><div class="card"><textarea id="f_notes" rows="4" placeholder="Client preferences, lighting ideas, shot list" style="margin:0">${esc(cur.notes)}</textarea></div>
-<p class="sec">Moodboard (tap a photo to remove it)</p><div class="card"><div class="mood" id="moodBox"></div><label class="ghost" style="margin:0;color:var(--tx);font-size:15px">Add photos<input type="file" accept="image/*" multiple style="display:none" onchange="addMood(this.files)"></label></div>
+<label style="margin-top:6px">Where did this client come from?</label><select id="f_src" style="margin:0">${opts.map(o=>`<option value="${o[0]}"${o[0]==cur.src?' selected':''}>${esc(o[1])}</option>`).join('')}</select></div>
+<div class="card"><label>Notes</label><textarea id="f_notes" rows="4" placeholder="Client preferences, lighting ideas, shot list" style="margin:0">${esc(cur.notes)}</textarea></div>
 ${isNew?'':'<button class="out" onclick="delShoot()">Delete shoot</button>'}`;
-drawGear();drawMood();overlap();openSheet();
-if(!moodLoaded){const sid=cur.id;moodRef(sid).get().then(d=>{if(cur&&cur.id==sid){cur.mood=(d.exists?(d.data().imgs||[]):[]).concat(cur.mood);moodLoaded=true;if(g('moodBox'))drawMood()}}).catch(()=>{})}}
-
-function drawGear(){g('gearBox').innerHTML=cur.gear.map((x,i)=>`<label class="chk"><input type="checkbox"${x.ok?' checked':''} onchange="cur.gear[${i}].ok=this.checked"><span>${esc(x.n)}</span></label>`).join('')+`<div class="row" style="margin-top:8px"><input id="newGear" placeholder="Add item" style="margin:0"><button class="ghost" style="width:auto;padding:12px 16px" onclick="const v=g('newGear').value.trim();if(v){cur.gear.push({n:v,ok:false});drawGear()}">Add</button></div>`}
-function drawMood(){g('moodBox').innerHTML=cur.mood.map((m,i)=>`<img src="${m}" onclick="if(confirm('Remove this photo?')){cur.mood.splice(${i},1);drawMood()}">`).join('')+(moodLoaded?'':'<p class="ml">Loading photos…</p>')}
-function addMood(files){[...files].forEach(f=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const s=Math.min(1,500/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);cur.mood.push(c.toDataURL('image/jpeg',.7));drawMood()};img.src=e.target.result};r.readAsDataURL(f)})}
+overlap();openSheet()}
 function overlap(){const d=g('f_date').value,o=D.shoots.filter(s=>s.date==d&&s.id!=cur.id);g('ov').innerHTML=o.length?`<div class="warn">You already have ${o.map(s=>esc(s.client)+(s.time?' at '+s.time:'')).join(', ')} on this day.</div>`:''}
-
 function saveShoot(){const c=g('f_client').value.trim(),d=g('f_date').value;if(!c||!d){alert('Add a client name and a date.');return}
-if(JSON.stringify(cur.mood).length>950000){alert('Too many moodboard photos for one shoot. Remove a few and try again.');return}
 Object.assign(cur,{client:c,phone:g('f_phone').value.trim(),insta:g('f_insta').value.trim(),status:g('f_status').value,type:g('f_type').value,date:d,time:g('f_time').value,end:g('f_end').value,loc:g('f_loc').value.trim(),price:+g('f_price').value||0,paid:+g('f_paid').value||0,src:+g('f_src').value,notes:g('f_notes').value});
-const {mood,...s}=cur;
-s.moodN=moodLoaded?mood.length:(s.moodN||0)+mood.length;
-if(moodLoaded){(mood.length?moodRef(s.id).set({imgs:mood}):moodRef(s.id).delete()).catch(()=>{})}
-else if(mood.length){moodRef(s.id).set({imgs:firebase.firestore.FieldValue.arrayUnion(...mood)},{merge:true}).catch(()=>{})}
-const i=D.shoots.findIndex(x=>x.id==s.id);if(i>=0)D.shoots[i]=s;else D.shoots.push(s);
-save();closeSheet();render()}
+const i=D.shoots.findIndex(x=>x.id==cur.id);if(i>=0)D.shoots[i]=cur;else D.shoots.push(cur);
+save();render();dId=null;openDetail(cur.id)}
 function delShoot(){if(confirm('Delete this shoot?')){D.shoots=D.shoots.filter(s=>s.id!=cur.id);moodRef(cur.id).delete().catch(()=>{});save();closeSheet();render()}}
 
 function openAd(id){const a=D.ads.find(x=>x.id==id);isNew=!a;cur=a?{...a}:{id:Date.now(),name:'',plat:'Instagram',spent:'',date:iso(new Date())};
@@ -320,7 +391,7 @@ sin.innerHTML=`<div class="row" style="margin-bottom:14px"><button class="lnk" o
 <div class="card"><label>Campaign name</label><input id="a_name" value="${esc(cur.name)}" placeholder="Wedding season promo">
 <label>Platform</label><select id="a_plat">${['Instagram','Facebook','TikTok','Google','Other'].map(p=>`<option${p==cur.plat?' selected':''}>${p}</option>`).join('')}</select>
 <label>Start date</label><input id="a_date" type="date" value="${cur.date}">
-<label>Total spent ($)</label><input id="a_spent" type="number" inputmode="decimal" value="${cur.spent}"></div>
+<label>Total spent ($)</label><input id="a_spent" type="number" inputmode="decimal" value="${cur.spent}" style="margin:0"></div>
 ${s.length?'<p class="sec">Clients from this ad</p>'+s.map(shootCard).join(''):''}
 ${isNew?'':'<button class="out" onclick="delAd()">Delete campaign</button>'}`;openSheet()}
 function saveAd(){const n=g('a_name').value.trim();if(!n){alert('Add a campaign name.');return}

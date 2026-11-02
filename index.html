@@ -142,6 +142,9 @@ label{font-size:13px;color:var(--mu);display:block;margin-bottom:4px}
 .eic{width:44px;height:44px;border-radius:14px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 44px}
 .tbx{flex:1;background:#ffffff0d;border-radius:14px;padding:10px 12px}
 .tbx b{font-size:17px;display:block;margin-top:2px}
+.cur{display:flex;background:var(--card2);border-radius:12px;padding:3px;flex:0 0 auto;margin-bottom:10px}
+.cur button{border:0;background:none;color:var(--mu);padding:9px 14px;border-radius:9px;font-weight:700;font-size:15px}
+.cur button.on{background:var(--ac);color:#fff}
 #print{display:none}
 @media print{html,body{background:#fff!important;padding:0!important}body>*{display:none!important}#print{display:block!important;color:#000;font-family:sans-serif;padding:24px}}
 </style>
@@ -212,17 +215,17 @@ const STC={Pending:'#f59e0b',Confirmed:'#22c55e',Editing:'#3b82f6',Delivered:'#6
 const TYPES=['Wedding','Engagement','Kateb kitab','Portrait','Family','Event','Commercial','Product','Other'];
 const CATS=[['🍔','Akel'],['⛽','Benzine'],['📷','Gear'],['🧾','Fawatir'],['🏠','Ijar'],['🚕','Taxi'],['🛍️','Shopping'],['🎁','Ghayro']];
 const K='shootbook_v1';
-const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector'],name:'',exp:[],fixed:[],sal:[],bal:null});
+const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector'],name:'',exp:[],fixed:[],sal:[],bal:null,rate:90000});
 let D=EMPTY(),user=null,unsub=null;
 let tab='dash',dm=0,filt='All',q='',showQ=false,view='list',calM=new Date(),selDay=null,jump=false;
 let cur=null,isNew=false,dId=null,dtab='status',dMood=null;
-let wm=0,wk='daily',wc='Akel',sf='m';
+let wm=0,wk='daily',wc='Akel',sf='m',wcur='lbp';
 let an={mode:'fin',per:'month',mo:0,yr:new Date().getFullYear(),from:'',to:''};
 const g=id=>document.getElementById(id);
 const sh=g('sheet'),sin=g('sin');
 const userRef=()=>db.collection('users').doc(user.uid);
 const moodRef=id=>userRef().collection('mood').doc(String(id));
-function save(){if(!user)return;userRef().set({shoots:D.shoots,ads:D.ads,gear:D.gear,name:D.name||'',exp:D.exp||[],fixed:D.fixed||[],sal:D.sal||[],bal:D.bal||null}).catch(e=>alert('Not saved: '+e.message))}
+function save(){if(!user)return;userRef().set({shoots:D.shoots,ads:D.ads,gear:D.gear,name:D.name||'',exp:D.exp||[],fixed:D.fixed||[],sal:D.sal||[],bal:D.bal||null,rate:D.rate||90000}).catch(e=>alert('Not saved: '+e.message))}
 const $=n=>'$'+Math.round(+n||0).toLocaleString('en-US');
 const $$=n=>'$'+(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -254,7 +257,7 @@ e=>alert('Could not load your data: '+e.message))});
 async function migrate(){let old=null;try{old=JSON.parse(localStorage.getItem(K)||'null')}catch(e){}
 const d=old||EMPTY();
 for(const s of d.shoots||[]){if(s.mood&&s.mood.length){s.moodN=s.mood.length;try{await moodRef(s.id).set({imgs:s.mood})}catch(e){}}delete s.mood}
-await userRef().set({shoots:d.shoots||[],ads:d.ads||[],gear:d.gear||EMPTY().gear,name:'',exp:[],fixed:[],sal:[],bal:null});
+await userRef().set({shoots:d.shoots||[],ads:d.ads||[],gear:d.gear||EMPTY().gear,name:'',exp:[],fixed:[],sal:[],bal:null,rate:90000});
 localStorage.removeItem(K)}
 
 const lv=()=>[g('l_email').value.trim(),g('l_pass').value];
@@ -306,6 +309,8 @@ return h+`</div></div><p class="mh" style="font-size:17px">${selDay?fmtDate(selD
 
 /* ---------- WALLET ---------- */
 const cIc=c=>(CATS.find(x=>x[1]==c)||['💸'])[0];
+const rate=()=>+D.rate||90000;
+const llFmt=n=>Math.round(+n||0).toLocaleString('en-US')+' LL';
 const fixedFor=k=>(D.fixed||[]).filter(f=>f.from<=k&&(!f.until||f.until>=k));
 const mAdd=(k,n)=>{const[y,m]=k.split('-').map(Number);return iso(new Date(y,m-1+n,1)).slice(0,7)};
 function salEntry(k){const s=(D.sal||[]).filter(x=>x.from<=k).sort((a,b)=>a.from.localeCompare(b.from));return s[s.length-1]||null}
@@ -340,11 +345,11 @@ const sIn=sum(D.shoots.filter(s=>s.date.startsWith(k)),s=>Math.min(+s.paid||0,+s
 const inc=sal+sIn,out=daily+fixed,left=inc-out,pct=inc?Math.min(100,out/inc*100):(out?100:0);
 const bc=pct>=100?'var(--bad)':pct>=80?'var(--warn)':'var(--ac)';
 const wst=(l,v,c,on)=>`<div class="stc"${on?` onclick="${on}"`:''}><i style="background:${c}"></i><div style="min-width:0"><p class="sn" style="font-size:21px">${$$(v)}</p><p class="ml" style="font-size:15px">${l}</p></div></div>`;
-const row=(e,fn)=>`<div class="ei" onclick="${fn}(${e.id})"><span class="eic">${cIc(e.c)}</span><div style="flex:1;min-width:0"><p class="cn" style="font-size:16px">${esc(e.n||e.c)}</p><p class="ml">${esc(e.c)}</p></div><p class="pr">${$$(e.a)}</p></div>`;
+const row=(e,fn)=>`<div class="ei" onclick="${fn}(${e.id})"><span class="eic">${cIc(e.c)}</span><div style="flex:1;min-width:0"><p class="cn" style="font-size:16px">${esc(e.n||e.c)}</p><p class="ml">${esc(e.c)}${e.ll?' · '+llFmt(e.ll):''}</p></div><p class="pr">${$$(e.a)}</p></div>`;
 let h=`<h1 class="pt">Wallet</h1>
 <div class="hero"><div class="row"><p class="lab">Money you have now</p>${bal!=null?`<button class="chip" style="border:0" onclick="editBal()">✎ Edit</button>`:''}</div>
 ${bal==null?`<p class="hl" style="font-size:15px;margin:10px 0 14px">Enter how much money you have right now (cash + bank). After that it updates by itself.</p><button class="btn" onclick="editBal()">Set my balance</button>`
-:`<p class="big" style="font-size:42px;margin:6px 0 0;color:${bal<0?'var(--bad)':'var(--tx)'}">${bal<0?'-':''}${$$(Math.abs(bal))}</p>`}
+:`<p class="big" style="font-size:42px;margin:6px 0 0;color:${bal<0?'var(--bad)':'var(--tx)'}">${bal<0?'-':''}${$$(Math.abs(bal))}</p><p class="ml" style="font-size:14px;margin-top:2px">≈ ${bal<0?'-':''}${llFmt(Math.abs(bal)*rate())}</p>`}
 <div class="row" style="margin-top:16px"><div class="tbx"><p class="ml">In today</p><b style="color:#5eead4">+${$$(tin)}</b></div><div class="tbx"><p class="ml">Spent today</p><b style="color:${tout?'var(--bad)':'var(--tx)'}">-${$$(tout)}</b></div></div>
 ${np?`<p class="ml" style="font-size:14px;margin-top:12px">💼 Next salary ${np}</p>`:''}</div>
 <div class="mcs">${[wm-1,wm,wm+1].map(o=>`<button class="mc${o==wm?' on':''}" onclick="wm=${o};render()">${o==0?'This month':monthKey(o)[1]}</button>`).join('')}</div>
@@ -357,7 +362,11 @@ ${sal?`<p class="ml" style="font-size:14px">${inc?'You spent '+Math.round(out/in
 <div class="card"><p class="lab" style="margin-bottom:12px">Add expense</p>
 <div class="seg2" style="background:var(--card2);padding:4px;margin-bottom:12px"><button class="${wk=='daily'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'daily','k')">Daily</button><button class="${wk=='fixed'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'fixed','k')">Every month</button></div>
 <div class="cats">${CATS.map(([i,c])=>`<button class="cat${c==wc?' on':''}" onclick="wPick(this,'${c}','c')">${i} ${c}</button>`).join('')}</div>
-<div class="row" style="align-items:flex-start"><input id="w_a" type="number" inputmode="decimal" placeholder="Amount $" style="flex:0 0 40%"><input id="w_n" placeholder="Note (optional)"></div>
+<div class="row" style="align-items:flex-start"><div class="cur"><button class="${wcur=='lbp'?'on':''}" onclick="wCur(this,'lbp')">LL</button><button class="${wcur=='usd'?'on':''}" onclick="wCur(this,'usd')">$</button></div>
+<input id="w_a" type="text" inputmode="${wcur=='lbp'?'numeric':'decimal'}" placeholder="${wcur=='lbp'?'Amount in LL':'Amount in $'}" oninput="wConv()" autocomplete="off"></div>
+<p id="w_conv" style="margin:-2px 4px 10px;color:#5eead4;font-weight:600;font-size:15px;min-height:19px"></p>
+<input id="w_n" placeholder="Note (optional)">
+<div class="row" style="margin:0 4px 12px"><span class="ml" style="font-size:13px">Rate: 1$ = ${rate().toLocaleString('en-US')} LL</span><button class="lnk" style="font-size:14px;padding:0" onclick="editRate()">Change rate</button></div>
 <button class="btn" onclick="addExp()">Add</button></div>`;
 h+=`<div class="row" style="margin:22px 4px 10px"><p class="sec" style="margin:0">🔁 Every month</p><b>${$$(fixed)}</b></div>`+(fx.length?`<div class="card" style="padding:4px 18px">${fx.map(f=>row(f,'stopFixed')).join('')}</div>`:'<div class="card ml" style="font-size:15px">Rent, internet, phone… add them once and they repeat every month.</div>');
 h+=`<div class="row" style="margin:22px 4px 10px"><p class="sec" style="margin:0">📅 Daily</p><b>${$$(daily)}</b></div>`;
@@ -368,17 +377,28 @@ if(ex.length||fx.length)h+='<p class="ml" style="text-align:center;font-size:13p
 return h}
 function wPick(b,v,key){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x==b));
 if(key=='k')wk=v;else if(key=='f'){sf=v;const w=g('d2w');if(w)w.style.display=v=='h'?'':'none';const l=g('sal_l');if(l)l.textContent=v=='h'?'Amount each payment ($)':'Monthly salary ($)'}else wc=v}
-function addExp(){const a=+g('w_a').value,n=g('w_n').value.trim();if(!(a>0)){alert('Enter an amount.');return}
-const[k]=monthKey(wm),t=iso(new Date());
-if(wk=='daily')D.exp=(D.exp||[]).concat({id:Date.now(),a,c:wc,n,d:t.startsWith(k)?t:k+'-01'});
-else D.fixed=(D.fixed||[]).concat({id:Date.now(),a,c:wc,n,from:k});
+function wRead(){const i=g('w_a');if(!i)return{usd:0,ll:0};
+if(wcur=='lbp'){const d=i.value.replace(/[^\d]/g,'');i.value=d?(+d).toLocaleString('en-US'):'';const ll=+d||0;return{usd:ll/rate(),ll}}
+return{usd:+i.value.replace(/[^\d.]/g,'')||0,ll:0}}
+function wConv(){const r=wRead(),p=g('w_conv');if(p)p.textContent=wcur=='lbp'&&r.ll?'= '+$$(r.usd):''}
+function wCur(b,c){wcur=c;b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x==b));
+const i=g('w_a');i.value='';i.placeholder=c=='lbp'?'Amount in LL':'Amount in $';i.inputMode=c=='lbp'?'numeric':'decimal';wConv();i.focus()}
+function addExp(){const r=wRead(),a=Math.round(r.usd*100)/100,n=g('w_n').value.trim();if(!(a>0)){alert('Enter an amount.');return}
+const[k]=monthKey(wm),t=iso(new Date()),base={id:Date.now(),a,c:wc,n};if(r.ll)base.ll=r.ll;
+if(wk=='daily')D.exp=(D.exp||[]).concat({...base,d:t.startsWith(k)?t:k+'-01'});
+else D.fixed=(D.fixed||[]).concat({...base,from:k});
 save();render()}
 function delExp(id){if(confirm('Delete this expense?')){D.exp=D.exp.filter(e=>e.id!=id);save();render()}}
 function stopFixed(id){const f=D.fixed.find(x=>x.id==id),[k,mn]=monthKey(wm);if(!f||!confirm('Stop this monthly expense from '+mn+' on? Earlier months stay the same.'))return;
 if(f.from>=k)D.fixed=D.fixed.filter(x=>x.id!=id);else f.until=monthKey(wm-1)[0];save();render()}
+function sheetHead(t){return `<div class="row" style="margin-bottom:16px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><b style="font-size:22px">${t}</b><span style="width:50px"></span></div>`}
+function editRate(){sin.innerHTML=sheetHead('Dollar rate')+`<div class="card"><label>How many LL is 1$?</label>
+<input id="w_rate" type="text" inputmode="numeric" value="${rate().toLocaleString('en-US')}" oninput="const d=this.value.replace(/[^0-9]/g,'');this.value=d?(+d).toLocaleString('en-US'):''">
+<p class="ml" style="font-size:14px;margin:0 0 14px">Expenses you already added keep their dollar amount.</p>
+<button class="btn" onclick="saveRate()">Save</button></div>`;openSheet()}
+function saveRate(){const d=+g('w_rate').value.replace(/[^0-9]/g,'');if(!d){alert('Enter a rate.');return}D.rate=d;save();closeSheet();render()}
 function editSalary(){const[k,mn]=monthKey(wm),s=salEntry(k)||{};sf=s.f||'m';
-sin.innerHTML=`<div class="row" style="margin-bottom:16px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><b style="font-size:22px">Salary</b><span style="width:50px"></span></div>
-<div class="card"><label>How often do you get paid?</label>
+sin.innerHTML=sheetHead('Salary')+`<div class="card"><label>How often do you get paid?</label>
 <div class="seg2" style="background:var(--card2);padding:4px;margin-bottom:14px"><button class="${sf=='m'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'m','f')">Once a month</button><button class="${sf=='h'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'h','f')">Every 15 days</button></div>
 <label id="sal_l">${sf=='h'?'Amount each payment ($)':'Monthly salary ($)'}</label>
 <input id="w_sal" type="number" inputmode="decimal" placeholder="500" value="${s.a||''}">
@@ -390,8 +410,7 @@ openSheet()}
 function saveSalary(){const[k]=monthKey(wm),v=+g('w_sal').value||0,d1=+g('w_d1').value||1,d2=+g('w_d2').value||15;
 D.sal=(D.sal||[]).filter(x=>x.from!=k).concat({from:k,a:v,f:sf,d1,d2});save();closeSheet();render()}
 function editBal(){const b=balNow(moneyEvents());
-sin.innerHTML=`<div class="row" style="margin-bottom:16px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><b style="font-size:22px">My balance</b><span style="width:50px"></span></div>
-<div class="card"><label>How much money do you have right now? (cash + bank)</label>
+sin.innerHTML=sheetHead('My balance')+`<div class="card"><label>How much money do you have right now in $? (cash + bank)</label>
 <input id="w_bal" type="number" inputmode="decimal" placeholder="0.00" value="${b!=null?Math.round(b*100)/100:''}">
 <p class="ml" style="font-size:14px;margin:0 0 14px">From now on the app adds your salary on pay day and your shoot payments, and takes out your expenses by itself.</p>
 <button class="btn" onclick="saveBal()">Save</button></div>`;

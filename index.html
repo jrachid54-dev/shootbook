@@ -145,6 +145,15 @@ label{font-size:13px;color:var(--mu);display:block;margin-bottom:4px}
 .cur{display:flex;background:var(--card2);border-radius:12px;padding:3px;flex:0 0 auto;margin-bottom:10px}
 .cur button{border:0;background:none;color:var(--mu);padding:9px 14px;border-radius:9px;font-weight:700;font-size:15px}
 .cur button.on{background:var(--ac);color:#fff}
+.days{display:flex;gap:8px;overflow-x:auto;margin:0 -18px 14px;padding:2px 18px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.dy{flex:none;width:58px;background:var(--card);border:1.5px solid transparent;border-radius:16px;padding:8px 0 6px;text-align:center;color:var(--tx)}
+.dy span{display:block;font-size:11px;color:var(--mu);font-weight:600;text-transform:uppercase}
+.dy b{display:block;font-size:20px;margin:2px 0}
+.dy i{display:block;font-size:11px;font-style:normal;color:var(--warn);min-height:14px;font-weight:600}
+.dy.td{border-color:var(--ac)}
+.dy.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.dy.on span,.dy.on i{color:#e6fffb}
 #print{display:none}
 @media print{html,body{background:#fff!important;padding:0!important}body>*{display:none!important}#print{display:block!important;color:#000;font-family:sans-serif;padding:24px}}
 </style>
@@ -219,7 +228,7 @@ const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteri
 let D=EMPTY(),user=null,unsub=null;
 let tab='dash',dm=0,filt='All',q='',showQ=false,view='list',calM=new Date(),selDay=null,jump=false;
 let cur=null,isNew=false,dId=null,dtab='status',dMood=null;
-let wm=0,wk='daily',wc='Akel',sf='m',wcur='lbp';
+let wm=0,wk='daily',wc='Akel',sf='m',wcur='lbp',wd=null;
 let an={mode:'fin',per:'month',mo:0,yr:new Date().getFullYear(),from:'',to:''};
 const g=id=>document.getElementById(id);
 const sh=g('sheet'),sin=g('sin');
@@ -339,11 +348,15 @@ const now=Date.now(),t=iso(new Date()),yd=new Date();yd.setDate(yd.getDate()-1);
 const ev=moneyEvents(),bal=balNow(ev),np=nextPay();
 const tin=sum(ev.filter(e=>e.a>0&&e.d==t&&e.t<=now),e=>e.a),tout=-sum(ev.filter(e=>e.a<0&&e.d==t&&e.t<=now),e=>e.a);
 const[k,mn]=monthKey(wm),se=salEntry(k);
-const ex=(D.exp||[]).filter(e=>e.d.startsWith(k)).sort((a,b)=>b.d.localeCompare(a.d)||b.id-a.id),fx=fixedFor(k);
+if(!wd||!wd.startsWith(k))wd=t.startsWith(k)?t:k+'-01';
+const ex=(D.exp||[]).filter(e=>e.d.startsWith(k)).sort((a,b)=>b.id-a.id),fx=fixedFor(k);
 const daily=sum(ex,e=>e.a),fixed=sum(fx,f=>f.a),sal=salFor(k);
 const sIn=sum(D.shoots.filter(s=>s.date.startsWith(k)),s=>Math.min(+s.paid||0,+s.price||0));
 const inc=sal+sIn,out=daily+fixed,left=inc-out,pct=inc?Math.min(100,out/inc*100):(out?100:0);
 const bc=pct>=100?'var(--bad)':pct>=80?'var(--warn)':'var(--ac)';
+const[yy,mm]=k.split('-').map(Number),nd=new Date(yy,mm,0).getDate();
+const dayTot={};ex.forEach(e=>{dayTot[e.d]=(dayTot[e.d]||0)+e.a});
+const dl=ex.filter(e=>e.d==wd),dlab=wd==t?'Today':wd==y?'Yesterday':fmtDate(wd);
 const wst=(l,v,c,on)=>`<div class="stc"${on?` onclick="${on}"`:''}><i style="background:${c}"></i><div style="min-width:0"><p class="sn" style="font-size:21px">${$$(v)}</p><p class="ml" style="font-size:15px">${l}</p></div></div>`;
 const row=(e,fn)=>`<div class="ei" onclick="${fn}(${e.id})"><span class="eic">${cIc(e.c)}</span><div style="flex:1;min-width:0"><p class="cn" style="font-size:16px">${esc(e.n||e.c)}</p><p class="ml">${esc(e.c)}${e.ll?' · '+llFmt(e.ll):''}</p></div><p class="pr">${$$(e.a)}</p></div>`;
 let h=`<h1 class="pt">Wallet</h1>
@@ -352,28 +365,29 @@ ${bal==null?`<p class="hl" style="font-size:15px;margin:10px 0 14px">Enter how m
 :`<p class="big" style="font-size:42px;margin:6px 0 0;color:${bal<0?'var(--bad)':'var(--tx)'}">${bal<0?'-':''}${$$(Math.abs(bal))}</p><p class="ml" style="font-size:14px;margin-top:2px">≈ ${bal<0?'-':''}${llFmt(Math.abs(bal)*rate())}</p>`}
 <div class="row" style="margin-top:16px"><div class="tbx"><p class="ml">In today</p><b style="color:#5eead4">+${$$(tin)}</b></div><div class="tbx"><p class="ml">Spent today</p><b style="color:${tout?'var(--bad)':'var(--tx)'}">-${$$(tout)}</b></div></div>
 ${np?`<p class="ml" style="font-size:14px;margin-top:12px">💼 Next salary ${np}</p>`:''}</div>
-<div class="mcs">${[wm-1,wm,wm+1].map(o=>`<button class="mc${o==wm?' on':''}" onclick="wm=${o};render()">${o==0?'This month':monthKey(o)[1]}</button>`).join('')}</div>
+<div class="mcs">${[wm-1,wm,wm+1].map(o=>`<button class="mc${o==wm?' on':''}" onclick="wm=${o};wd=null;render()">${o==0?'This month':monthKey(o)[1]}</button>`).join('')}</div>
 <div class="card"><p class="lab">${wm==0?'Left this month':'Left in '+mn}</p>
 <p class="big" style="font-size:34px;margin:6px 0 4px;color:${left<0?'var(--bad)':'var(--tx)'}">${left<0?'-':''}${$$(Math.abs(left))}</p>
 <p class="ml" style="font-size:15px">${$$(inc)} in · ${$$(out)} out</p>
 <div class="bar"><i style="width:${pct}%;background:${bc}"></i></div>
 ${sal?`<p class="ml" style="font-size:14px">${inc?'You spent '+Math.round(out/inc*100)+'% of your income':''}</p>`:`<button class="btn" style="margin-top:4px" onclick="editSalary()">+ Add your salary</button>`}</div>
 <div class="sg">${wst(se&&se.f=='h'?'Salary · 2 pays ✎':'Salary ✎',sal,'var(--ac)','editSalary()')}${wst('Shoots',sIn,'#a78bfa','')}${wst('Daily',daily,'var(--warn)','')}${wst('Monthly',fixed,'var(--bad)','')}</div>
-<div class="card"><p class="lab" style="margin-bottom:12px">Add expense</p>
-<div class="seg2" style="background:var(--card2);padding:4px;margin-bottom:12px"><button class="${wk=='daily'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'daily','k')">Daily</button><button class="${wk=='fixed'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'fixed','k')">Every month</button></div>
+<p class="sec" style="margin:22px 4px 10px">📅 Days of ${mn}</p>
+<div class="days" id="days">${[...Array(nd)].map((_,i)=>{const ds=k+'-'+String(i+1).padStart(2,'0'),dt=new Date(yy,mm-1,i+1);
+return `<button class="dy${ds==wd?' on':''}${ds==t?' td':''}" onclick="wd='${ds}';render()"><span>${dt.toLocaleDateString('en-GB',{weekday:'short'})}</span><b>${i+1}</b><i>${dayTot[ds]?$(dayTot[ds]):''}</i></button>`}).join('')}</div>
+<div class="card"><p class="lab" style="margin-bottom:12px">Add expense · <span style="color:var(--ac)">${wk=='daily'?esc(dlab):'every month'}</span></p>
+<div class="seg2" style="background:var(--card2);padding:4px;margin-bottom:12px"><button class="${wk=='daily'?'on':''}" style="font-size:16px;padding:10px" onclick="wk='daily';render()">Daily</button><button class="${wk=='fixed'?'on':''}" style="font-size:16px;padding:10px" onclick="wk='fixed';render()">Every month</button></div>
 <div class="cats">${CATS.map(([i,c])=>`<button class="cat${c==wc?' on':''}" onclick="wPick(this,'${c}','c')">${i} ${c}</button>`).join('')}</div>
 <div class="row" style="align-items:flex-start"><div class="cur"><button class="${wcur=='lbp'?'on':''}" onclick="wCur(this,'lbp')">LL</button><button class="${wcur=='usd'?'on':''}" onclick="wCur(this,'usd')">$</button></div>
 <input id="w_a" type="text" inputmode="${wcur=='lbp'?'numeric':'decimal'}" placeholder="${wcur=='lbp'?'Amount in LL':'Amount in $'}" oninput="wConv()" autocomplete="off"></div>
 <p id="w_conv" style="margin:-2px 4px 10px;color:#5eead4;font-weight:600;font-size:15px;min-height:19px"></p>
 <input id="w_n" placeholder="Note (optional)">
 <div class="row" style="margin:0 4px 12px"><span class="ml" style="font-size:13px">Rate: 1$ = ${rate().toLocaleString('en-US')} LL</span><button class="lnk" style="font-size:14px;padding:0" onclick="editRate()">Change rate</button></div>
-<button class="btn" onclick="addExp()">Add</button></div>`;
+<button class="btn" onclick="addExp()">Add</button></div>
+<div class="row" style="margin:22px 4px 10px"><p class="sec" style="margin:0">🧾 ${esc(dlab)}</p><b>${$$(sum(dl,e=>e.a))}</b></div>
+${dl.length?`<div class="card" style="padding:4px 18px">${dl.map(e=>row(e,'delExp')).join('')}</div>`:'<div class="card ml" style="font-size:15px">Nothing spent on this day.</div>'}`;
 h+=`<div class="row" style="margin:22px 4px 10px"><p class="sec" style="margin:0">🔁 Every month</p><b>${$$(fixed)}</b></div>`+(fx.length?`<div class="card" style="padding:4px 18px">${fx.map(f=>row(f,'stopFixed')).join('')}</div>`:'<div class="card ml" style="font-size:15px">Rent, internet, phone… add them once and they repeat every month.</div>');
-h+=`<div class="row" style="margin:22px 4px 10px"><p class="sec" style="margin:0">📅 Daily</p><b>${$$(daily)}</b></div>`;
-if(!ex.length)h+='<div class="card ml" style="font-size:15px">No daily expenses this month.</div>';
-const gp={};ex.forEach(e=>(gp[e.d]=gp[e.d]||[]).push(e));
-Object.entries(gp).forEach(([d,l])=>{h+=`<div class="row" style="margin:14px 4px 8px"><span class="ml" style="font-size:14px">${d==t?'Today':d==y?'Yesterday':fmtDate(d)}</span><span class="ml" style="font-size:14px">${$$(sum(l,e=>e.a))}</span></div><div class="card" style="padding:4px 18px">${l.map(e=>row(e,'delExp')).join('')}</div>`});
-if(ex.length||fx.length)h+='<p class="ml" style="text-align:center;font-size:13px;margin-top:16px">Tap an expense to delete it</p>';
+if(dl.length||fx.length)h+='<p class="ml" style="text-align:center;font-size:13px;margin-top:16px">Tap an expense to delete it</p>';
 return h}
 function wPick(b,v,key){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x==b));
 if(key=='k')wk=v;else if(key=='f'){sf=v;const w=g('d2w');if(w)w.style.display=v=='h'?'':'none';const l=g('sal_l');if(l)l.textContent=v=='h'?'Amount each payment ($)':'Monthly salary ($)'}else wc=v}
@@ -384,8 +398,8 @@ function wConv(){const r=wRead(),p=g('w_conv');if(p)p.textContent=wcur=='lbp'&&r
 function wCur(b,c){wcur=c;b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x==b));
 const i=g('w_a');i.value='';i.placeholder=c=='lbp'?'Amount in LL':'Amount in $';i.inputMode=c=='lbp'?'numeric':'decimal';wConv();i.focus()}
 function addExp(){const r=wRead(),a=Math.round(r.usd*100)/100,n=g('w_n').value.trim();if(!(a>0)){alert('Enter an amount.');return}
-const[k]=monthKey(wm),t=iso(new Date()),base={id:Date.now(),a,c:wc,n};if(r.ll)base.ll=r.ll;
-if(wk=='daily')D.exp=(D.exp||[]).concat({...base,d:t.startsWith(k)?t:k+'-01'});
+const[k]=monthKey(wm),base={id:Date.now(),a,c:wc,n};if(r.ll)base.ll=r.ll;
+if(wk=='daily')D.exp=(D.exp||[]).concat({...base,d:wd&&wd.startsWith(k)?wd:k+'-01'});
 else D.fixed=(D.fixed||[]).concat({...base,from:k});
 save();render()}
 function delExp(id){if(confirm('Delete this expense?')){D.exp=D.exp.filter(e=>e.id!=id);save();render()}}
@@ -608,6 +622,7 @@ function render(){if(!user)return;
 g('view').innerHTML={dash:vDash,shoots:vShoots,wallet:vWallet,ads:vAds,profile:vProfile}[tab]();
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));
 g('fab').style.display=(tab=='dash'||tab=='shoots')?'':'none';
+if(tab=='wallet'){const c=g('days'),o=c&&c.querySelector('.dy.on');if(o)c.scrollLeft=o.offsetLeft-c.clientWidth/2+o.clientWidth/2}
 if(tab=='shoots')drawList()}
 </script>
 </body>

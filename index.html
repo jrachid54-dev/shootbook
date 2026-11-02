@@ -140,6 +140,8 @@ label{font-size:13px;color:var(--mu);display:block;margin-bottom:4px}
 .ei{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd)}
 .ei:last-child{border-bottom:0}
 .eic{width:44px;height:44px;border-radius:14px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 44px}
+.tbx{flex:1;background:#ffffff0d;border-radius:14px;padding:10px 12px}
+.tbx b{font-size:17px;display:block;margin-top:2px}
 #print{display:none}
 @media print{html,body{background:#fff!important;padding:0!important}body>*{display:none!important}#print{display:block!important;color:#000;font-family:sans-serif;padding:24px}}
 </style>
@@ -210,17 +212,17 @@ const STC={Pending:'#f59e0b',Confirmed:'#22c55e',Editing:'#3b82f6',Delivered:'#6
 const TYPES=['Wedding','Engagement','Kateb kitab','Portrait','Family','Event','Commercial','Product','Other'];
 const CATS=[['🍔','Akel'],['⛽','Benzine'],['📷','Gear'],['🧾','Fawatir'],['🏠','Ijar'],['🚕','Taxi'],['🛍️','Shopping'],['🎁','Ghayro']];
 const K='shootbook_v1';
-const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector'],name:'',exp:[],fixed:[],sal:[]});
+const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector'],name:'',exp:[],fixed:[],sal:[],bal:null});
 let D=EMPTY(),user=null,unsub=null;
 let tab='dash',dm=0,filt='All',q='',showQ=false,view='list',calM=new Date(),selDay=null,jump=false;
 let cur=null,isNew=false,dId=null,dtab='status',dMood=null;
-let wm=0,wk='daily',wc='Akel';
+let wm=0,wk='daily',wc='Akel',sf='m';
 let an={mode:'fin',per:'month',mo:0,yr:new Date().getFullYear(),from:'',to:''};
 const g=id=>document.getElementById(id);
 const sh=g('sheet'),sin=g('sin');
 const userRef=()=>db.collection('users').doc(user.uid);
 const moodRef=id=>userRef().collection('mood').doc(String(id));
-function save(){if(!user)return;userRef().set({shoots:D.shoots,ads:D.ads,gear:D.gear,name:D.name||'',exp:D.exp||[],fixed:D.fixed||[],sal:D.sal||[]}).catch(e=>alert('Not saved: '+e.message))}
+function save(){if(!user)return;userRef().set({shoots:D.shoots,ads:D.ads,gear:D.gear,name:D.name||'',exp:D.exp||[],fixed:D.fixed||[],sal:D.sal||[],bal:D.bal||null}).catch(e=>alert('Not saved: '+e.message))}
 const $=n=>'$'+Math.round(+n||0).toLocaleString('en-US');
 const $$=n=>'$'+(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -252,7 +254,7 @@ e=>alert('Could not load your data: '+e.message))});
 async function migrate(){let old=null;try{old=JSON.parse(localStorage.getItem(K)||'null')}catch(e){}
 const d=old||EMPTY();
 for(const s of d.shoots||[]){if(s.mood&&s.mood.length){s.moodN=s.mood.length;try{await moodRef(s.id).set({imgs:s.mood})}catch(e){}}delete s.mood}
-await userRef().set({shoots:d.shoots||[],ads:d.ads||[],gear:d.gear||EMPTY().gear,name:'',exp:[],fixed:[],sal:[]});
+await userRef().set({shoots:d.shoots||[],ads:d.ads||[],gear:d.gear||EMPTY().gear,name:'',exp:[],fixed:[],sal:[],bal:null});
 localStorage.removeItem(K)}
 
 const lv=()=>[g('l_email').value.trim(),g('l_pass').value];
@@ -305,9 +307,33 @@ return h+`</div></div><p class="mh" style="font-size:17px">${selDay?fmtDate(selD
 /* ---------- WALLET ---------- */
 const cIc=c=>(CATS.find(x=>x[1]==c)||['💸'])[0];
 const fixedFor=k=>(D.fixed||[]).filter(f=>f.from<=k&&(!f.until||f.until>=k));
-function salFor(k){const s=(D.sal||[]).filter(x=>x.from<=k).sort((a,b)=>a.from.localeCompare(b.from));return s.length?+s[s.length-1].a||0:0}
+const mAdd=(k,n)=>{const[y,m]=k.split('-').map(Number);return iso(new Date(y,m-1+n,1)).slice(0,7)};
+function salEntry(k){const s=(D.sal||[]).filter(x=>x.from<=k).sort((a,b)=>a.from.localeCompare(b.from));return s[s.length-1]||null}
+function salFor(k){const s=salEntry(k);return s?(+s.a||0)*(s.f=='h'?2:1):0}
+function payDays(k){const s=salEntry(k);if(!s||!+s.a)return[];
+const[y,m]=k.split('-').map(Number),last=new Date(y,m,0).getDate(),cl=d=>Math.min(Math.max(+d||1,1),last);
+const ds=s.f=='h'?[cl(s.d1||1),cl(s.d2||15)]:[cl(s.d1||1)];
+return ds.map(d=>({t:new Date(y,m-1,d).getTime(),a:+s.a,date:iso(new Date(y,m-1,d))}))}
+function moneyEvents(){const ev=[],cm=iso(new Date()).slice(0,7),dt=d=>new Date(d+'T12:00').getTime();
+(D.exp||[]).forEach(e=>ev.push({t:e.id,a:-e.a,d:e.d}));
+D.shoots.forEach(s=>{const p=s.pays||[];p.forEach(x=>ev.push({t:x.t||dt(x.d),a:+x.a,d:x.d}));
+const r=(+s.paid||0)-sum(p,x=>x.a);if(r>0)ev.push({t:s.id,a:r,d:iso(new Date(s.id))})});
+let k=D.bal?iso(new Date(D.bal.ts)).slice(0,7):cm;if(k>cm)k=cm;
+for(;k<=cm;k=mAdd(k,1)){
+payDays(k).forEach(p=>ev.push({t:p.t,a:p.a,d:p.date}));
+const[y,m]=k.split('-').map(Number);
+fixedFor(k).forEach(f=>{const t=k==f.from?f.id:new Date(y,m-1,1).getTime();ev.push({t,a:-f.a,d:iso(new Date(t))})})}
+return ev}
+function balNow(ev){if(!D.bal)return null;const now=Date.now();return(+D.bal.a||0)+sum(ev.filter(e=>e.t>D.bal.ts&&e.t<=now),e=>e.a)}
+function nextPay(){const now=Date.now(),cm=iso(new Date()).slice(0,7);
+const p=[...payDays(cm),...payDays(mAdd(cm,1))].find(x=>x.t>now);if(!p)return'';
+const n=Math.round((p.t-new Date(iso(new Date())+'T00:00').getTime())/864e5);
+return(n==1?'tomorrow':'in '+n+' days')+' · '+$$(p.a)}
 function vWallet(){
-const[k,mn]=monthKey(wm),t=iso(new Date()),yd=new Date();yd.setDate(yd.getDate()-1);const y=iso(yd);
+const now=Date.now(),t=iso(new Date()),yd=new Date();yd.setDate(yd.getDate()-1);const y=iso(yd);
+const ev=moneyEvents(),bal=balNow(ev),np=nextPay();
+const tin=sum(ev.filter(e=>e.a>0&&e.d==t&&e.t<=now),e=>e.a),tout=-sum(ev.filter(e=>e.a<0&&e.d==t&&e.t<=now),e=>e.a);
+const[k,mn]=monthKey(wm),se=salEntry(k);
 const ex=(D.exp||[]).filter(e=>e.d.startsWith(k)).sort((a,b)=>b.d.localeCompare(a.d)||b.id-a.id),fx=fixedFor(k);
 const daily=sum(ex,e=>e.a),fixed=sum(fx,f=>f.a),sal=salFor(k);
 const sIn=sum(D.shoots.filter(s=>s.date.startsWith(k)),s=>Math.min(+s.paid||0,+s.price||0));
@@ -316,13 +342,18 @@ const bc=pct>=100?'var(--bad)':pct>=80?'var(--warn)':'var(--ac)';
 const wst=(l,v,c,on)=>`<div class="stc"${on?` onclick="${on}"`:''}><i style="background:${c}"></i><div style="min-width:0"><p class="sn" style="font-size:21px">${$$(v)}</p><p class="ml" style="font-size:15px">${l}</p></div></div>`;
 const row=(e,fn)=>`<div class="ei" onclick="${fn}(${e.id})"><span class="eic">${cIc(e.c)}</span><div style="flex:1;min-width:0"><p class="cn" style="font-size:16px">${esc(e.n||e.c)}</p><p class="ml">${esc(e.c)}</p></div><p class="pr">${$$(e.a)}</p></div>`;
 let h=`<h1 class="pt">Wallet</h1>
+<div class="hero"><div class="row"><p class="lab">Money you have now</p>${bal!=null?`<button class="chip" style="border:0" onclick="editBal()">✎ Edit</button>`:''}</div>
+${bal==null?`<p class="hl" style="font-size:15px;margin:10px 0 14px">Enter how much money you have right now (cash + bank). After that it updates by itself.</p><button class="btn" onclick="editBal()">Set my balance</button>`
+:`<p class="big" style="font-size:42px;margin:6px 0 0;color:${bal<0?'var(--bad)':'var(--tx)'}">${bal<0?'-':''}${$$(Math.abs(bal))}</p>`}
+<div class="row" style="margin-top:16px"><div class="tbx"><p class="ml">In today</p><b style="color:#5eead4">+${$$(tin)}</b></div><div class="tbx"><p class="ml">Spent today</p><b style="color:${tout?'var(--bad)':'var(--tx)'}">-${$$(tout)}</b></div></div>
+${np?`<p class="ml" style="font-size:14px;margin-top:12px">💼 Next salary ${np}</p>`:''}</div>
 <div class="mcs">${[wm-1,wm,wm+1].map(o=>`<button class="mc${o==wm?' on':''}" onclick="wm=${o};render()">${o==0?'This month':monthKey(o)[1]}</button>`).join('')}</div>
-<div class="hero"><p class="lab">${wm==0?'Left this month':'Left in '+mn}</p>
-<p class="big" style="font-size:40px;margin:6px 0 4px;color:${left<0?'var(--bad)':'var(--tx)'}">${left<0?'-':''}${$$(Math.abs(left))}</p>
-<p class="hl" style="font-size:15px">${$$(inc)} in · ${$$(out)} out</p>
-<div class="bar" style="background:#ffffff14"><i style="width:${pct}%;background:${bc}"></i></div>
+<div class="card"><p class="lab">${wm==0?'Left this month':'Left in '+mn}</p>
+<p class="big" style="font-size:34px;margin:6px 0 4px;color:${left<0?'var(--bad)':'var(--tx)'}">${left<0?'-':''}${$$(Math.abs(left))}</p>
+<p class="ml" style="font-size:15px">${$$(inc)} in · ${$$(out)} out</p>
+<div class="bar"><i style="width:${pct}%;background:${bc}"></i></div>
 ${sal?`<p class="ml" style="font-size:14px">${inc?'You spent '+Math.round(out/inc*100)+'% of your income':''}</p>`:`<button class="btn" style="margin-top:4px" onclick="editSalary()">+ Add your salary</button>`}</div>
-<div class="sg">${wst('Salary ✎',sal,'var(--ac)','editSalary()')}${wst('Shoots',sIn,'#a78bfa','')}${wst('Daily',daily,'var(--warn)','')}${wst('Monthly',fixed,'var(--bad)','')}</div>
+<div class="sg">${wst(se&&se.f=='h'?'Salary · 2 pays ✎':'Salary ✎',sal,'var(--ac)','editSalary()')}${wst('Shoots',sIn,'#a78bfa','')}${wst('Daily',daily,'var(--warn)','')}${wst('Monthly',fixed,'var(--bad)','')}</div>
 <div class="card"><p class="lab" style="margin-bottom:12px">Add expense</p>
 <div class="seg2" style="background:var(--card2);padding:4px;margin-bottom:12px"><button class="${wk=='daily'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'daily','k')">Daily</button><button class="${wk=='fixed'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'fixed','k')">Every month</button></div>
 <div class="cats">${CATS.map(([i,c])=>`<button class="cat${c==wc?' on':''}" onclick="wPick(this,'${c}','c')">${i} ${c}</button>`).join('')}</div>
@@ -335,7 +366,8 @@ const gp={};ex.forEach(e=>(gp[e.d]=gp[e.d]||[]).push(e));
 Object.entries(gp).forEach(([d,l])=>{h+=`<div class="row" style="margin:14px 4px 8px"><span class="ml" style="font-size:14px">${d==t?'Today':d==y?'Yesterday':fmtDate(d)}</span><span class="ml" style="font-size:14px">${$$(sum(l,e=>e.a))}</span></div><div class="card" style="padding:4px 18px">${l.map(e=>row(e,'delExp')).join('')}</div>`});
 if(ex.length||fx.length)h+='<p class="ml" style="text-align:center;font-size:13px;margin-top:16px">Tap an expense to delete it</p>';
 return h}
-function wPick(b,v,key){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x==b));if(key=='k')wk=v;else wc=v}
+function wPick(b,v,key){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x==b));
+if(key=='k')wk=v;else if(key=='f'){sf=v;const w=g('d2w');if(w)w.style.display=v=='h'?'':'none';const l=g('sal_l');if(l)l.textContent=v=='h'?'Amount each payment ($)':'Monthly salary ($)'}else wc=v}
 function addExp(){const a=+g('w_a').value,n=g('w_n').value.trim();if(!(a>0)){alert('Enter an amount.');return}
 const[k]=monthKey(wm),t=iso(new Date());
 if(wk=='daily')D.exp=(D.exp||[]).concat({id:Date.now(),a,c:wc,n,d:t.startsWith(k)?t:k+'-01'});
@@ -344,15 +376,27 @@ save();render()}
 function delExp(id){if(confirm('Delete this expense?')){D.exp=D.exp.filter(e=>e.id!=id);save();render()}}
 function stopFixed(id){const f=D.fixed.find(x=>x.id==id),[k,mn]=monthKey(wm);if(!f||!confirm('Stop this monthly expense from '+mn+' on? Earlier months stay the same.'))return;
 if(f.from>=k)D.fixed=D.fixed.filter(x=>x.id!=id);else f.until=monthKey(wm-1)[0];save();render()}
-function editSalary(){const[k,mn]=monthKey(wm);
+function editSalary(){const[k,mn]=monthKey(wm),s=salEntry(k)||{};sf=s.f||'m';
 sin.innerHTML=`<div class="row" style="margin-bottom:16px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><b style="font-size:22px">Salary</b><span style="width:50px"></span></div>
-<div class="card"><label>Monthly salary from your company ($)</label>
-<input id="w_sal" type="number" inputmode="decimal" placeholder="1000" value="${salFor(k)||''}">
+<div class="card"><label>How often do you get paid?</label>
+<div class="seg2" style="background:var(--card2);padding:4px;margin-bottom:14px"><button class="${sf=='m'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'m','f')">Once a month</button><button class="${sf=='h'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'h','f')">Every 15 days</button></div>
+<label id="sal_l">${sf=='h'?'Amount each payment ($)':'Monthly salary ($)'}</label>
+<input id="w_sal" type="number" inputmode="decimal" placeholder="500" value="${s.a||''}">
+<div class="row" style="align-items:flex-start"><div style="flex:1"><label>Pay day (day of month)</label><input id="w_d1" type="number" inputmode="numeric" min="1" max="31" value="${s.d1||1}"></div>
+<div style="flex:1;${sf=='h'?'':'display:none'}" id="d2w"><label>Second pay day</label><input id="w_d2" type="number" inputmode="numeric" min="1" max="31" value="${s.d2||15}"></div></div>
 <p class="ml" style="font-size:14px;margin:0 0 14px">Applies from ${mn} onward. Earlier months keep their old salary.</p>
 <button class="btn" onclick="saveSalary()">Save</button></div>`;
-openSheet();setTimeout(()=>{const i=g('w_sal');if(i)i.focus()},300)}
-function saveSalary(){const[k]=monthKey(wm),v=+g('w_sal').value||0;
-D.sal=(D.sal||[]).filter(x=>x.from!=k).concat({from:k,a:v});save();closeSheet();render()}
+openSheet()}
+function saveSalary(){const[k]=monthKey(wm),v=+g('w_sal').value||0,d1=+g('w_d1').value||1,d2=+g('w_d2').value||15;
+D.sal=(D.sal||[]).filter(x=>x.from!=k).concat({from:k,a:v,f:sf,d1,d2});save();closeSheet();render()}
+function editBal(){const b=balNow(moneyEvents());
+sin.innerHTML=`<div class="row" style="margin-bottom:16px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><b style="font-size:22px">My balance</b><span style="width:50px"></span></div>
+<div class="card"><label>How much money do you have right now? (cash + bank)</label>
+<input id="w_bal" type="number" inputmode="decimal" placeholder="0.00" value="${b!=null?Math.round(b*100)/100:''}">
+<p class="ml" style="font-size:14px;margin:0 0 14px">From now on the app adds your salary on pay day and your shoot payments, and takes out your expenses by itself.</p>
+<button class="btn" onclick="saveBal()">Save</button></div>`;
+openSheet()}
+function saveBal(){const v=g('w_bal').value;if(v===''){alert('Enter an amount.');return}D.bal={a:+v||0,ts:Date.now()};save();closeSheet();render()}
 
 /* ---------- CALENDAR REMINDERS ---------- */
 function ics(list){const p=t=>t.replace(':','')+'00',e=x=>String(x||'').replace(/[\\;,]/g,m=>'\\'+m).replace(/\n/g,'\\n');
@@ -473,7 +517,7 @@ function dPay(s){const due=(+s.price||0)-(+s.paid||0),pct=+s.price?Math.min(100,
 g('dtc').innerHTML=`<div class="card"><div class="row"><div><p class="lab">Paid</p><p class="big" style="font-size:26px;color:#5eead4">${$$(s.paid)}</p></div><div style="text-align:right"><p class="lab">Due</p><p class="big" style="font-size:26px;color:${due>0?'#ef4444':'var(--mu)'}">${$$(Math.max(due,0))}</p></div></div><div class="bar"><i style="width:${pct}%"></i></div><p class="ml" style="font-size:14px">Total ${$$(s.price)}</p></div>
 <div class="card"><label>Add a payment ($)</label><div class="row"><input id="pa" type="number" inputmode="decimal" placeholder="50" style="margin:0"><button class="btn" style="width:auto;padding:12px 20px" onclick="addPay()">Add</button></div>${due>0?`<button class="ghost" style="margin-top:12px" onclick="addPay(${due})">Mark fully paid</button>`:''}</div>
 ${(s.pays||[]).length?`<p class="sec">Payment history</p><div class="card">${s.pays.slice().reverse().map(p=>info(fmtDate(p.d),$$(p.a))).join('')}</div>`:''}`}
-function addPay(v){const a=v||+g('pa').value;if(!a){alert('Enter an amount.');return}updateShoot(dId,s=>{s.paid=(+s.paid||0)+a;s.pays=(s.pays||[]).concat({a,d:iso(new Date())})})}
+function addPay(v){const a=v||+g('pa').value;if(!a){alert('Enter an amount.');return}updateShoot(dId,s=>{s.paid=(+s.paid||0)+a;s.pays=(s.pays||[]).concat({a,d:iso(new Date()),t:Date.now()})})}
 
 function dGear(s){const gr=s.gear||[],n=gr.filter(x=>x.ok).length;
 g('dtc').innerHTML=`<div class="card"><div class="row" style="margin-bottom:6px"><p class="mt">Packing list</p><span class="chip">${n}/${gr.length} packed</span></div>${gr.map((x,i)=>`<label class="chk"><input type="checkbox"${x.ok?' checked':''} onchange="const c=this.checked;updateShoot(dId,s=>{s.gear[${i}].ok=c})"><span>${esc(x.n)}</span></label>`).join('')}<div class="row" style="margin-top:10px"><input id="dg" placeholder="Add item" style="margin:0"><button class="ghost" style="width:auto;padding:12px 16px" onclick="const v=g('dg').value.trim();if(v)updateShoot(dId,s=>{s.gear=(s.gear||[]).concat({n:v,ok:false})})">Add</button></div></div>`}

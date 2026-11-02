@@ -321,7 +321,7 @@ let h=`<h1 class="pt">Wallet</h1>
 <p class="big" style="font-size:40px;margin:6px 0 4px;color:${left<0?'var(--bad)':'var(--tx)'}">${left<0?'-':''}${$$(Math.abs(left))}</p>
 <p class="hl" style="font-size:15px">${$$(inc)} in · ${$$(out)} out</p>
 <div class="bar" style="background:#ffffff14"><i style="width:${pct}%;background:${bc}"></i></div>
-<p class="ml" style="font-size:14px">${inc?'You spent '+Math.round(out/inc*100)+'% of your income':'Tap Salary to add your monthly salary'}</p></div>
+${sal?`<p class="ml" style="font-size:14px">${inc?'You spent '+Math.round(out/inc*100)+'% of your income':''}</p>`:`<button class="btn" style="margin-top:4px" onclick="editSalary()">+ Add your salary</button>`}</div>
 <div class="sg">${wst('Salary ✎',sal,'var(--ac)','editSalary()')}${wst('Shoots',sIn,'#a78bfa','')}${wst('Daily',daily,'var(--warn)','')}${wst('Monthly',fixed,'var(--bad)','')}</div>
 <div class="card"><p class="lab" style="margin-bottom:12px">Add expense</p>
 <div class="seg2" style="background:var(--card2);padding:4px;margin-bottom:12px"><button class="${wk=='daily'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'daily','k')">Daily</button><button class="${wk=='fixed'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'fixed','k')">Every month</button></div>
@@ -344,8 +344,15 @@ save();render()}
 function delExp(id){if(confirm('Delete this expense?')){D.exp=D.exp.filter(e=>e.id!=id);save();render()}}
 function stopFixed(id){const f=D.fixed.find(x=>x.id==id),[k,mn]=monthKey(wm);if(!f||!confirm('Stop this monthly expense from '+mn+' on? Earlier months stay the same.'))return;
 if(f.from>=k)D.fixed=D.fixed.filter(x=>x.id!=id);else f.until=monthKey(wm-1)[0];save();render()}
-function editSalary(){const[k,mn]=monthKey(wm),v=prompt('Monthly salary from your company ($)\nApplies from '+mn+' onward',salFor(k)||'');if(v===null)return;
-D.sal=(D.sal||[]).filter(x=>x.from!=k).concat({from:k,a:+v||0});save();render()}
+function editSalary(){const[k,mn]=monthKey(wm);
+sin.innerHTML=`<div class="row" style="margin-bottom:16px"><button class="cb" onclick="closeSheet()" aria-label="Back">${IC.back}</button><b style="font-size:22px">Salary</b><span style="width:50px"></span></div>
+<div class="card"><label>Monthly salary from your company ($)</label>
+<input id="w_sal" type="number" inputmode="decimal" placeholder="1000" value="${salFor(k)||''}">
+<p class="ml" style="font-size:14px;margin:0 0 14px">Applies from ${mn} onward. Earlier months keep their old salary.</p>
+<button class="btn" onclick="saveSalary()">Save</button></div>`;
+openSheet();setTimeout(()=>{const i=g('w_sal');if(i)i.focus()},300)}
+function saveSalary(){const[k]=monthKey(wm),v=+g('w_sal').value||0;
+D.sal=(D.sal||[]).filter(x=>x.from!=k).concat({from:k,a:v});save();closeSheet();render()}
 
 /* ---------- CALENDAR REMINDERS ---------- */
 function ics(list){const p=t=>t.replace(':','')+'00',e=x=>String(x||'').replace(/[\\;,]/g,m=>'\\'+m).replace(/\n/g,'\\n');
@@ -538,7 +545,6 @@ function render(){if(!user)return;
 g('view').innerHTML={dash:vDash,shoots:vShoots,wallet:vWallet,ads:vAds,profile:vProfile}[tab]();
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));
 g('fab').style.display=(tab=='dash'||tab=='shoots')?'':'none';
-if(tab=='shoots')direct=0;
 if(tab=='shoots')drawList()}
 </script>
 </body>

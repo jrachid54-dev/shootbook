@@ -74,8 +74,8 @@ main{padding:0 18px}
 .dc{background:var(--card);border-radius:18px;padding:18px;text-align:center}
 .dc svg{width:26px;height:26px;color:var(--ac)}
 .dc .n{font-size:26px;font-weight:700;margin:8px 0 2px}
-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;background:#15171c;border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(4,1fr);padding:10px 0 calc(10px + env(safe-area-inset-bottom));z-index:5}
-nav button{background:none;border:0;color:var(--mu);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:500}
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;background:#15171c;border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(5,1fr);padding:10px 0 calc(10px + env(safe-area-inset-bottom));z-index:5}
+nav button{background:none;border:0;color:var(--mu);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:500}
 nav svg{width:26px;height:26px}
 nav button.on{color:var(--ac)}
 .fab{position:fixed;right:max(20px,calc(50% - 300px));bottom:calc(90px + env(safe-area-inset-bottom));width:62px;height:62px;border-radius:50%;background:var(--ac);color:#fff;border:0;font-size:36px;line-height:1;box-shadow:0 6px 20px #17b3a355;z-index:6}
@@ -133,6 +133,13 @@ label{font-size:13px;color:var(--mu);display:block;margin-bottom:4px}
 .cs{background:#12302b;border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .pdf{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border:1.5px solid #3b82f6;background:none;color:#60a5fa;border-radius:18px;font-size:18px;font-weight:600}
 .pdf svg{width:22px;height:22px}
+.cats{display:flex;gap:8px;overflow-x:auto;margin:0 -18px 12px;padding:0 18px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex:none;background:var(--card2);border:1.5px solid transparent;color:var(--tx);border-radius:20px;padding:8px 14px;font-size:15px;font-weight:500}
+.cat.on{border-color:var(--ac);background:#0f2422;color:var(--ac)}
+.ei{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd)}
+.ei:last-child{border-bottom:0}
+.eic{width:44px;height:44px;border-radius:14px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 44px}
 #print{display:none}
 @media print{html,body{background:#fff!important;padding:0!important}body>*{display:none!important}#print{display:block!important;color:#000;font-family:sans-serif;padding:24px}}
 </style>
@@ -175,6 +182,7 @@ grid:svg('<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" widt
 cal:svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
 ads:svg('<path d="M3 10v4h4l6 4V6L7 10H3zM17 9a4 4 0 0 1 0 6"/>'),
 user:svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+wallet:svg('<path d="M3 7V6a2 2 0 0 1 2-2h11v3"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 13.5h2"/>'),
 search:svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'),
 list:svg('<path d="M4 6h16M4 12h16M4 18h16"/>'),
 chev:svg('<path d="M9 6l6 6-6 6"/>'),
@@ -196,21 +204,23 @@ send:svg('<path d="M4 12l16-8-6 16-3-7-7-1z"/>'),
 file:svg('<path d="M14 3H6v18h12V7l-4-4z"/><path d="M14 3v4h4"/>'),
 cam:svg('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
 rec:svg('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>')};
-const TABS=[['dash','Dashboard',IC.grid],['shoots','Photoshoots',IC.cal],['ads','Ads',IC.ads],['profile','Profile',IC.user]];
+const TABS=[['dash','Dashboard',IC.grid],['shoots','Photoshoots',IC.cal],['wallet','Wallet',IC.wallet],['ads','Ads',IC.ads],['profile','Profile',IC.user]];
 const ST=['Pending','Confirmed','Editing','Delivered'];
 const STC={Pending:'#f59e0b',Confirmed:'#22c55e',Editing:'#3b82f6',Delivered:'#6b7280'};
 const TYPES=['Wedding','Engagement','Kateb kitab','Portrait','Family','Event','Commercial','Product','Other'];
+const CATS=[['🍔','Akel'],['⛽','Benzine'],['📷','Gear'],['🧾','Fawatir'],['🏠','Ijar'],['🚕','Taxi'],['🛍️','Shopping'],['🎁','Ghayro']];
 const K='shootbook_v1';
-const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector'],name:''});
+const EMPTY=()=>({shoots:[],ads:[],gear:['Camera body','Lenses','Charged batteries','Memory cards','Flash','Reflector'],name:'',exp:[],fixed:[],sal:[]});
 let D=EMPTY(),user=null,unsub=null;
 let tab='dash',dm=0,filt='All',q='',showQ=false,view='list',calM=new Date(),selDay=null,jump=false;
 let cur=null,isNew=false,dId=null,dtab='status',dMood=null;
+let wm=0,wk='daily',wc='Akel';
 let an={mode:'fin',per:'month',mo:0,yr:new Date().getFullYear(),from:'',to:''};
 const g=id=>document.getElementById(id);
 const sh=g('sheet'),sin=g('sin');
 const userRef=()=>db.collection('users').doc(user.uid);
 const moodRef=id=>userRef().collection('mood').doc(String(id));
-function save(){if(!user)return;userRef().set({shoots:D.shoots,ads:D.ads,gear:D.gear,name:D.name||''}).catch(e=>alert('Not saved: '+e.message))}
+function save(){if(!user)return;userRef().set({shoots:D.shoots,ads:D.ads,gear:D.gear,name:D.name||'',exp:D.exp||[],fixed:D.fixed||[],sal:D.sal||[]}).catch(e=>alert('Not saved: '+e.message))}
 const $=n=>'$'+Math.round(+n||0).toLocaleString('en-US');
 const $$=n=>'$'+(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -242,7 +252,7 @@ e=>alert('Could not load your data: '+e.message))});
 async function migrate(){let old=null;try{old=JSON.parse(localStorage.getItem(K)||'null')}catch(e){}
 const d=old||EMPTY();
 for(const s of d.shoots||[]){if(s.mood&&s.mood.length){s.moodN=s.mood.length;try{await moodRef(s.id).set({imgs:s.mood})}catch(e){}}delete s.mood}
-await userRef().set({shoots:d.shoots||[],ads:d.ads||[],gear:d.gear||EMPTY().gear,name:''});
+await userRef().set({shoots:d.shoots||[],ads:d.ads||[],gear:d.gear||EMPTY().gear,name:'',exp:[],fixed:[],sal:[]});
 localStorage.removeItem(K)}
 
 const lv=()=>[g('l_email').value.trim(),g('l_pass').value];
@@ -292,6 +302,70 @@ for(let d=1;d<=days;d++){const ds=iso(new Date(y,mo,d)),n=arr.some(s=>s.date==ds
 const list=arr.filter(s=>selDay?s.date==selDay:s.date.startsWith(iso(first).slice(0,7))).sort(byDate);
 return h+`</div></div><p class="mh" style="font-size:17px">${selDay?fmtDate(selDay):'This month'}</p>`+(list.length?list.map(shootCard).join(''):'<div class="card ml" style="font-size:15px">No shoots.</div>')}
 
+/* ---------- WALLET ---------- */
+const cIc=c=>(CATS.find(x=>x[1]==c)||['💸'])[0];
+const fixedFor=k=>(D.fixed||[]).filter(f=>f.from<=k&&(!f.until||f.until>=k));
+function salFor(k){const s=(D.sal||[]).filter(x=>x.from<=k).sort((a,b)=>a.from.localeCompare(b.from));return s.length?+s[s.length-1].a||0:0}
+function vWallet(){
+const[k,mn]=monthKey(wm),t=iso(new Date()),yd=new Date();yd.setDate(yd.getDate()-1);const y=iso(yd);
+const ex=(D.exp||[]).filter(e=>e.d.startsWith(k)).sort((a,b)=>b.d.localeCompare(a.d)||b.id-a.id),fx=fixedFor(k);
+const daily=sum(ex,e=>e.a),fixed=sum(fx,f=>f.a),sal=salFor(k);
+const sIn=sum(D.shoots.filter(s=>s.date.startsWith(k)),s=>Math.min(+s.paid||0,+s.price||0));
+const inc=sal+sIn,out=daily+fixed,left=inc-out,pct=inc?Math.min(100,out/inc*100):(out?100:0);
+const bc=pct>=100?'var(--bad)':pct>=80?'var(--warn)':'var(--ac)';
+const wst=(l,v,c,on)=>`<div class="stc"${on?` onclick="${on}"`:''}><i style="background:${c}"></i><div style="min-width:0"><p class="sn" style="font-size:21px">${$$(v)}</p><p class="ml" style="font-size:15px">${l}</p></div></div>`;
+const row=(e,fn)=>`<div class="ei" onclick="${fn}(${e.id})"><span class="eic">${cIc(e.c)}</span><div style="flex:1;min-width:0"><p class="cn" style="font-size:16px">${esc(e.n||e.c)}</p><p class="ml">${esc(e.c)}</p></div><p class="pr">${$$(e.a)}</p></div>`;
+let h=`<h1 class="pt">Wallet</h1>
+<div class="mcs">${[wm-1,wm,wm+1].map(o=>`<button class="mc${o==wm?' on':''}" onclick="wm=${o};render()">${o==0?'This month':monthKey(o)[1]}</button>`).join('')}</div>
+<div class="hero"><p class="lab">${wm==0?'Left this month':'Left in '+mn}</p>
+<p class="big" style="font-size:40px;margin:6px 0 4px;color:${left<0?'var(--bad)':'var(--tx)'}">${left<0?'-':''}${$$(Math.abs(left))}</p>
+<p class="hl" style="font-size:15px">${$$(inc)} in · ${$$(out)} out</p>
+<div class="bar" style="background:#ffffff14"><i style="width:${pct}%;background:${bc}"></i></div>
+<p class="ml" style="font-size:14px">${inc?'You spent '+Math.round(out/inc*100)+'% of your income':'Tap Salary to add your monthly salary'}</p></div>
+<div class="sg">${wst('Salary ✎',sal,'var(--ac)','editSalary()')}${wst('Shoots',sIn,'#a78bfa','')}${wst('Daily',daily,'var(--warn)','')}${wst('Monthly',fixed,'var(--bad)','')}</div>
+<div class="card"><p class="lab" style="margin-bottom:12px">Add expense</p>
+<div class="seg2" style="background:var(--card2);padding:4px;margin-bottom:12px"><button class="${wk=='daily'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'daily','k')">Daily</button><button class="${wk=='fixed'?'on':''}" style="font-size:16px;padding:10px" onclick="wPick(this,'fixed','k')">Every month</button></div>
+<div class="cats">${CATS.map(([i,c])=>`<button class="cat${c==wc?' on':''}" onclick="wPick(this,'${c}','c')">${i} ${c}</button>`).join('')}</div>
+<div class="row" style="align-items:flex-start"><input id="w_a" type="number" inputmode="decimal" placeholder="Amount $" style="flex:0 0 40%"><input id="w_n" placeholder="Note (optional)"></div>
+<button class="btn" onclick="addExp()">Add</button></div>`;
+h+=`<div class="row" style="margin:22px 4px 10px"><p class="sec" style="margin:0">🔁 Every month</p><b>${$$(fixed)}</b></div>`+(fx.length?`<div class="card" style="padding:4px 18px">${fx.map(f=>row(f,'stopFixed')).join('')}</div>`:'<div class="card ml" style="font-size:15px">Rent, internet, phone… add them once and they repeat every month.</div>');
+h+=`<div class="row" style="margin:22px 4px 10px"><p class="sec" style="margin:0">📅 Daily</p><b>${$$(daily)}</b></div>`;
+if(!ex.length)h+='<div class="card ml" style="font-size:15px">No daily expenses this month.</div>';
+const gp={};ex.forEach(e=>(gp[e.d]=gp[e.d]||[]).push(e));
+Object.entries(gp).forEach(([d,l])=>{h+=`<div class="row" style="margin:14px 4px 8px"><span class="ml" style="font-size:14px">${d==t?'Today':d==y?'Yesterday':fmtDate(d)}</span><span class="ml" style="font-size:14px">${$$(sum(l,e=>e.a))}</span></div><div class="card" style="padding:4px 18px">${l.map(e=>row(e,'delExp')).join('')}</div>`});
+if(ex.length||fx.length)h+='<p class="ml" style="text-align:center;font-size:13px;margin-top:16px">Tap an expense to delete it</p>';
+return h}
+function wPick(b,v,key){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x==b));if(key=='k')wk=v;else wc=v}
+function addExp(){const a=+g('w_a').value,n=g('w_n').value.trim();if(!(a>0)){alert('Enter an amount.');return}
+const[k]=monthKey(wm),t=iso(new Date());
+if(wk=='daily')D.exp=(D.exp||[]).concat({id:Date.now(),a,c:wc,n,d:t.startsWith(k)?t:k+'-01'});
+else D.fixed=(D.fixed||[]).concat({id:Date.now(),a,c:wc,n,from:k});
+save();render()}
+function delExp(id){if(confirm('Delete this expense?')){D.exp=D.exp.filter(e=>e.id!=id);save();render()}}
+function stopFixed(id){const f=D.fixed.find(x=>x.id==id),[k,mn]=monthKey(wm);if(!f||!confirm('Stop this monthly expense from '+mn+' on? Earlier months stay the same.'))return;
+if(f.from>=k)D.fixed=D.fixed.filter(x=>x.id!=id);else f.until=monthKey(wm-1)[0];save();render()}
+function editSalary(){const[k,mn]=monthKey(wm),v=prompt('Monthly salary from your company ($)\nApplies from '+mn+' onward',salFor(k)||'');if(v===null)return;
+D.sal=(D.sal||[]).filter(x=>x.from!=k).concat({from:k,a:+v||0});save();render()}
+
+/* ---------- CALENDAR REMINDERS ---------- */
+function ics(list){const p=t=>t.replace(':','')+'00',e=x=>String(x||'').replace(/[\\;,]/g,m=>'\\'+m).replace(/\n/g,'\\n');
+const now=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//ShootBook//EN'];
+list.forEach(s=>{const d=s.date.replace(/-/g,''),[Y,M,Dd]=s.date.split('-').map(Number),nd=iso(new Date(Y,M-1,Dd+1)).replace(/-/g,'');
+L.push('BEGIN:VEVENT','UID:shoot-'+s.id+'@shootbook','DTSTAMP:'+now,
+s.time?'DTSTART:'+d+'T'+p(s.time):'DTSTART;VALUE=DATE:'+d,
+s.time?'DTEND:'+d+'T'+p(s.end||s.time):'DTEND;VALUE=DATE:'+nd,
+'SUMMARY:'+e('📷 '+s.client),'LOCATION:'+e(s.loc),'DESCRIPTION:'+e(s.type+(s.phone?' · '+s.phone:'')),
+'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e('Shoot ba3d chaher: '+s.client),'TRIGGER:-P30D','END:VALARM',
+'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e('Shoot bokra: '+s.client),'TRIGGER:-P1D','END:VALARM',
+'END:VEVENT')});
+L.push('END:VCALENDAR');return L.join('\r\n')}
+const upcoming=()=>D.shoots.filter(s=>s.date>=iso(new Date())&&stOf(s)!='Delivered').sort(byDate);
+function addCal(list){list=list.filter(Boolean);if(!list.length){alert('No upcoming shoots.');return}
+const txt=ics(list);
+if(/iPhone|iPad/i.test(navigator.userAgent))location.href='data:text/calendar;charset=utf-8,'+encodeURIComponent(txt);
+else shareFile(txt,'shootbook.ics','text/calendar')}
+
 function vAds(){const sp=sum(D.ads,a=>a.spent),rev=sum(D.shoots.filter(s=>s.src>0),s=>s.price);
 return `<h1 class="pt">Ads</h1><div class="sg"><div class="stc"><i style="background:var(--bad)"></i><div><p class="sn" style="font-size:24px">${$(sp)}</p><p class="ml" style="font-size:15px">Spent</p></div></div><div class="stc"><i style="background:var(--ac)"></i><div><p class="sn" style="font-size:24px">${$(rev)}</p><p class="ml" style="font-size:15px">Earned</p></div></div></div>
 ${sp?`<div class="card row"><span style="font-size:16px">Every $1 on ads brought back</span><b style="font-size:22px;color:${rev>=sp?'#5eead4':'var(--bad)'}">$${(rev/sp).toFixed(1)}</b></div>`:''}
@@ -301,6 +375,7 @@ return `<div class="sc2" style="padding:16px" onclick="openAd(${a.id})"><div cla
 function menu(k,t,bg,fg,ic){return `<div class="mi" onclick="openPage('${k}')"><span class="mic" style="background:${bg};color:${fg}">${ic}</span><p class="mt" style="flex:1">${t}</p>${IC.chev}</div>`}
 function vProfile(){return `<div style="text-align:center;padding:24px 0 20px"><div class="av">${IC.user}</div><span class="chip" style="font-size:17px;padding:9px 20px">${esc(D.name||'Photographer')}</span></div>
 ${menu('analytics','Analytics','#fef3c7','#d97706',IC.chart)}${menu('equipment','My Equipment','#ccfbf1','#0d9488',IC.bag)}${menu('moodlib','Moodboard Library','#3b2d6b','#a78bfa',IC.img)}${menu('settings','Settings','#2e323b','#9ca3af',IC.gear)}
+<p class="sec">Reminders</p><div class="mi" onclick="addCal(upcoming())"><span class="mic" style="background:#3b2a12;color:var(--warn)">${IC.cal}</span><div style="flex:1"><p class="mt">Add shoots to Calendar</p><p class="ml" style="font-size:14px">Alerts 1 month and 1 day before</p></div>${IC.chev}</div>
 <p class="sec">Data and export</p><div class="mi" onclick="exportCSV()"><span class="mic" style="background:#12312e;color:var(--ac)">${IC.dl}</span><div style="flex:1"><p class="mt">Export photoshoots</p><p class="ml" style="font-size:14px">Save your shoots as a CSV file</p></div>${IC.chev}</div>
 <button class="out" onclick="if(confirm('Log out?'))auth.signOut()">Log Out</button>`}
 
@@ -381,6 +456,7 @@ g('dtc').innerHTML=`<div class="card"><div class="row"><p class="mt">Workflow pr
 <div class="wfl">${ST.map((x,j)=>`<span style="${j==i?'color:var(--tx);font-weight:600':''}">${x}</span>`).join('')}</div>
 <div class="cs"><div><p class="lab">Current stage</p><p style="margin:0;font-size:19px;font-weight:700;color:${STC[ST[i]]}">${ST[i]}</p></div>${nx?`<button class="ghost" style="width:auto;padding:12px 16px;background:#0b0c0f" onclick="setStatus('${nx}')">Mark as ${nx}</button>`:''}</div></div>
 <div class="card"><p class="lab" style="margin-bottom:4px">Client</p>${info('Type',esc(s.type))}${info('Source',esc(srcName(s.src)))}${s.phone?info('Phone',`<a href="tel:${esc(s.phone)}" style="color:var(--ac)">${esc(s.phone)}</a>`):''}${ig?info('Instagram',`<a href="https://instagram.com/${encodeURIComponent(ig)}" style="color:var(--ac)">@${esc(ig)}</a>`):''}${wa?`<a class="ghost" style="margin-top:14px" href="https://wa.me/${wa}">Message on WhatsApp</a>`:''}</div>
+<button class="ghost" style="padding:16px;font-size:17px;border-radius:18px;margin-bottom:12px" onclick="addCal([D.shoots.find(x=>x.id==dId)])">📅 Add to Calendar <span class="ml" style="font-size:14px">· 1 month + 1 day before</span></button>
 <button class="pdf" onclick="printBrief()">${IC.file}Export PDF</button>`}
 function setStatus(x){updateShoot(dId,s=>{s.status=x})}
 
@@ -459,9 +535,10 @@ function exportData(){shareFile(JSON.stringify(D),'shootbook-backup-'+iso(new Da
 function importData(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.shoots||!x.ads)throw 0;if(confirm('Replace all current data with this backup?')){x.shoots.forEach(s=>delete s.mood);D=Object.assign(EMPTY(),x);save();closeSheet();render()}}catch(e){alert('That file is not a valid backup.')}};r.readAsText(f)}
 
 function render(){if(!user)return;
-g('view').innerHTML={dash:vDash,shoots:vShoots,ads:vAds,profile:vProfile}[tab]();
+g('view').innerHTML={dash:vDash,shoots:vShoots,wallet:vWallet,ads:vAds,profile:vProfile}[tab]();
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));
 g('fab').style.display=(tab=='dash'||tab=='shoots')?'':'none';
+if(tab=='shoots')direct=0;
 if(tab=='shoots')drawList()}
 </script>
 </body>
